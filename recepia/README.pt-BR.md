@@ -173,7 +173,8 @@ curl http://localhost:8000/api/agendamentos/ID_AG/interacoes \
 | POST | `/api/whatsapp/desconectar` | Logout |
 | POST | `/api/webhook/evolution` | Callback Evolution (HMAC) |
 | GET | `/api/relatorios/dashboard` | Métricas do dia |
-| GET | `/health` | Health (pinga DB) |
+| GET | `/health` | Liveness leve, sem consultar banco |
+| GET | `/ready` | Readiness, consulta banco |
 
 ---
 

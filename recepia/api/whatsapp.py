@@ -23,6 +23,12 @@ def conectar(
     db: Session = Depends(get_db_dependency),
 ):
     """Cria instância no Evolution, configura webhook automático (G5), retorna QR Code."""
+    if not settings.DEBUG and not settings.PUBLIC_WEBHOOK_URL:
+        raise HTTPException(503, "PUBLIC_WEBHOOK_URL não configurada")
+    if not settings.DEBUG and settings.AI_PROVIDER == "openrouter" and not settings.openrouter_enabled:
+        raise HTTPException(503, "Configure OPENROUTER_API_KEY e OPENROUTER_MODEL antes de conectar o WhatsApp")
+    if not settings.DEBUG and not settings.EVOLUTION_API_KEY:
+        raise HTTPException(503, "EVOLUTION_API_KEY não configurada")
     ws = WhatsAppService()
     if not ws.criar_instancia(clinica.evolution_instance_name).get("success"):
         raise HTTPException(502, "Falha ao criar instancia WhatsApp")

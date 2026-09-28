@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 from config import settings
@@ -8,7 +9,12 @@ from config import settings
 # testes (sqlite:///:memory:) usa SingletonThreadPool, que não aceita max_overflow.
 _engine_kwargs = {"pool_pre_ping": True}
 if not settings.DATABASE_URL.startswith("sqlite"):
-    _engine_kwargs.update(pool_size=10, max_overflow=20)
+    _engine_kwargs.update(pool_size=5, max_overflow=5, pool_recycle=300, pool_timeout=10)
+    _connect_args = {"connect_timeout": 10}
+    _db_url = make_url(settings.DATABASE_URL)
+    if (_db_url.host or "").endswith(".neon.tech") and "sslmode" not in _db_url.query:
+        _connect_args["sslmode"] = "require"
+    _engine_kwargs["connect_args"] = _connect_args
 
 engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 

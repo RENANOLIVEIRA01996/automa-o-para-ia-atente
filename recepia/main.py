@@ -10,7 +10,7 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from config import origens_cors
+from config import origens_cors, settings
 from core.deps import clinica_atual, verificar_admin
 from core.limiter import limiter
 from core.timezones import agora_utc, from_utc_to_br
@@ -76,7 +76,8 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-init_db()
+if settings.RUN_DB_MIGRATIONS_ON_STARTUP:
+    init_db()
 
 # Routers
 app.include_router(signup.router)          # /api/signup (Sprint 4 — self-serve, sem auth)
@@ -109,20 +110,20 @@ app.include_router(webhooks.router)        # /api/webhook (Evolution callback)
 
 
 @app.get("/health")
-def health(db: Session = Depends(get_db_dependency)):
-    """G7: health real — ping DB. Usado por k8s/uptime."""
+def health():
+    """Liveness leve para Render e monitor externo."""
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+def ready(db: Session = Depends(get_db_dependency)):
+    """Readiness: consulta barata ao Neon, separada do monitor frequente."""
     from sqlalchemy import text
-    db_ok = False
     try:
         db.execute(text("SELECT 1"))
-        db_ok = True
     except Exception:
-        pass
-    return {
-        "status": "ok" if db_ok else "degraded",
-        "service": "Recepia API",
-        "db": "ok" if db_ok else "error",
-    }
+        raise HTTPException(status_code=503, detail="Banco indisponível")
+    return {"status": "ok", "db": "ok"}
 
 
 # Dashboard estático — F1/B7 fix: StaticFiles tem proteção embutida contra traversal

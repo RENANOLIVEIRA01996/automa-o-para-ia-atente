@@ -1,0 +1,5 @@
+# Mesma linha 2.3.x esperada pelo payload de webhook e pela API atual.
+# O Compose local permanece independente deste Dockerfile.
+FROM evoapicloud/evolution-api:v2.3.7
+
+EXPOSE 8080

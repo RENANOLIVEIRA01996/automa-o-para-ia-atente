@@ -182,7 +182,7 @@ async def webhook_evolution(
         if not texto.strip():
             return {"status": "ok"}
 
-        if settings.OPENROUTER_API_KEY and settings.OPENROUTER_MODEL:
+        if settings.openrouter_enabled:
             if not message_id:
                 log.warning("Mensagem Evolution sem ID ignorada: tenant=%s", clinica.id)
                 return {"status": "ok"}

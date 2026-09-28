@@ -32,13 +32,15 @@ RUN useradd --create-home --shell /bin/bash recepia \
     && chown -R recepia:recepia /app \
     && mkdir -p /data/fotos /data/fotos_paciente /data/logos \
     && touch /data/fotos/.keep /data/fotos_paciente/.keep /data/logos/.keep \
-    && chown -R recepia:recepia /data
-USER recepia
+    && chown -R recepia:recepia /data \
+    && chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -fsS http://localhost:8000/health || exit 1
+    CMD sh -c 'if [ "${WORKER_PROCESS:-false}" = "true" ]; then exit 0; fi; curl -fsS "http://127.0.0.1:${PORT:-8000}/health" || exit 1'
 
 # --proxy-headers + --forwarded-allow-ips: atrás do proxy (Render/Cloudflare) o
 # uvicorn passa a usar o IP real do cliente (X-Forwarded-For) em vez do IP do

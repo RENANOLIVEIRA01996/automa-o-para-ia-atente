@@ -12,7 +12,7 @@ from config import settings
 
 class WhatsAppService:
     def __init__(self):
-        self.base_url = settings.EVOLUTION_API_URL.rstrip("/")
+        self.base_url = settings.evolution_base_url
         self.api_key = settings.EVOLUTION_API_KEY
         self.timeout = 30
 

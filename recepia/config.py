@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     # Evolution API (WhatsApp self-hosted)
     EVOLUTION_API_URL: str = "http://localhost:8080"
+    # Render fornece host:porta do serviço privado; em Compose vale EVOLUTION_API_URL.
+    EVOLUTION_API_HOSTPORT: str = ""
     EVOLUTION_API_KEY: str = ""
     # URL pública da Recepia (usada pra apontar webhook do Evolution pra cá)
     # Ex: https://recepia.app.br ou https://abc.trycloudflare.com
@@ -33,7 +35,9 @@ class Settings(BaseSettings):
     OPENROUTER_MODEL: str = ""
     OPENROUTER_FALLBACK_MODEL: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    AI_PROVIDER: str = "auto"
     SAAS_LIMITS_ENABLED: bool = False
+    RUN_DB_MIGRATIONS_ON_STARTUP: bool = True
 
     # Operação
     INTERVALO_CONFIRMACAO_HORAS: int = 24
@@ -57,6 +61,14 @@ class Settings(BaseSettings):
                 return True
         return value
 
+    @field_validator("AI_PROVIDER")
+    @classmethod
+    def validar_ai_provider(cls, value: str) -> str:
+        provider = value.strip().lower()
+        if provider not in {"auto", "openrouter", "legacy"}:
+            raise ValueError("AI_PROVIDER deve ser auto, openrouter ou legacy")
+        return provider
+
     @field_validator("JWT_SECRET", "ADMIN_API_KEY", "EVOLUTION_API_KEY")
     @classmethod
     def rejeitar_defaults_change_me(cls, v: str, info) -> str:
@@ -65,7 +77,7 @@ class Settings(BaseSettings):
         v_lower = v.lower().strip()
         if v_lower.startswith("change-me") or v_lower in ("changeme", "dev-key", "test", "secret", "password"):
             raise ValueError(
-                f"{info.field_name} usa valor inseguro ('{v[:20]}...'). "
+                f"{info.field_name} usa um valor inseguro. "
                 "Gere com `openssl rand -hex 32` e configure no .env."
             )
         # JWT precisa ser longo o suficiente pra HS256 (256 bits = 32 bytes hex = 64 chars)
@@ -89,7 +101,19 @@ class Settings(BaseSettings):
                 "Gere com `openssl rand -hex 32` e configure no .env — sem ele o "
                 "webhook /api/webhook/evolution ficaria sem autenticação."
             )
+        if not self.DEBUG and "*" in {origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")}:
+            raise ValueError("ALLOWED_ORIGINS não pode conter * em produção")
         return self
+
+    @property
+    def evolution_base_url(self) -> str:
+        if self.EVOLUTION_API_HOSTPORT:
+            return "http://" + self.EVOLUTION_API_HOSTPORT.strip().removeprefix("http://").rstrip("/")
+        return self.EVOLUTION_API_URL.rstrip("/")
+
+    @property
+    def openrouter_enabled(self) -> bool:
+        return self.AI_PROVIDER != "legacy" and bool(self.OPENROUTER_API_KEY and self.OPENROUTER_MODEL)
 
     class Config:
         env_file = ".env"

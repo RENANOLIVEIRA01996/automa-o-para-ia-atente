@@ -104,7 +104,8 @@ echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
 # add a free GROQ_API_KEY from https://console.groq.com
 
 docker compose up -d
-curl http://localhost:8000/health   # -> {"status":"ok","db":"ok"}
+curl http://localhost:8000/health   # -> {"status":"ok"}
+curl http://localhost:8000/ready    # -> {"status":"ok","db":"ok"}
 ```
 
 Create your first clinic, log in, add a patient and connect WhatsApp — the full step-by-step (including the QR-code flow and triggering confirmations manually) is in **[README.pt-BR.md](README.pt-BR.md)**.
@@ -133,7 +134,8 @@ CI runs lint (ruff) + the full suite on every push via [GitHub Actions](.github/
 | POST | `/api/whatsapp/conectar` | Create instance + QR code |
 | POST | `/api/webhook/evolution` | Evolution callback (intent classification) |
 | GET | `/api/relatorios/dashboard` | Daily metrics |
-| GET | `/health` | Liveness (pings DB) |
+| GET | `/health` | Liveness leve, sem consultar DB |
+| GET | `/ready` | Readiness, consulta DB |
 
 ## Security & compliance
 
