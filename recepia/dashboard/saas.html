@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recepia · Gestão da empresa</title>
+  <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #17212c; background: #f4f7f7; --accent: #176c69; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .layout { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0,1fr); }
+    aside { background: #102b31; color: #fff; padding: 26px 16px; }
+    .brand { font-size: 24px; font-weight: 800; letter-spacing: -.05em; padding: 0 12px 22px; }
+    .brand small { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0; color: #b3d0d2; margin-top: 5px; }
+    nav { display: grid; gap: 6px; }
+    nav button, nav a { appearance: none; border: 0; width: 100%; text-decoration: none; text-align: left; background: transparent; color: #d5e6e6; padding: 12px 14px; border-radius: 10px; font: inherit; cursor: pointer; display:flex; align-items:center; gap:10px; }
+    nav svg { width: 18px; height: 18px; flex: none; }
+    nav button:focus-visible, nav a:focus-visible { outline: 2px solid #89e4d9; outline-offset: 2px; }
+    nav button.active, nav button:hover, nav a:hover { background: #26515a; color: #fff; }
+    nav button:disabled { opacity:.48; cursor:not-allowed; }
+    nav button:disabled:hover { background:transparent; color:#d5e6e6; }
+    main { padding: 30px clamp(16px,4vw,52px); max-width: 1400px; width: 100%; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    h1 { font-size: clamp(24px,3vw,34px); letter-spacing: -.045em; margin: 0; }
+    h2 { font-size: 19px; margin: 0 0 16px; }
+    p { line-height: 1.5; }
+    .muted { color: #62757b; }
+    .panel { background: white; border: 1px solid #e1e9e8; border-radius: 16px; padding: 22px; box-shadow: 0 4px 22px #122d3210; margin-bottom: 18px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 12px; }
+    .metric strong { display: block; font-size: clamp(21px,2.5vw,30px); margin-top: 10px; overflow-wrap:anywhere; }
+    .metric span { font-size: 13px; color: #5e7277; }
+    .grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    label { font-size: 13px; font-weight: 650; }
+    input, select, textarea { width: 100%; padding: 11px 12px; border: 1px solid #cddbd9; border-radius: 9px; font: inherit; background: #fff; color: #17212c; }
+    textarea { min-height: 90px; resize: vertical; }
+    button.primary, button.secondary, button.danger { border: 0; border-radius: 9px; padding: 11px 16px; font: inherit; font-weight: 650; cursor: pointer; }
+    button.primary { background: var(--accent); color: white; }
+    button.secondary { background: #e5f0ee; color: #174e4e; }
+    button.danger { background: #fce9e8; color: #9a2727; }
+    button:disabled { opacity: .5; cursor: wait; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0; border-top: 1px solid #e7eeed; }
+    .row:first-child { border-top: 0; }
+    .row button { flex: none; }
+    .service-table { width:100%; border-collapse:collapse; }
+    .service-table th, .service-table td { padding:12px 10px; border-bottom:1px solid #e7eeed; text-align:left; }
+    .service-table th { color:#62757b; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .service-table .stack { flex-wrap:nowrap; }
+    dialog { border:0; border-radius:16px; padding:24px; width:min(420px,calc(100vw - 32px)); box-shadow:0 20px 80px #102b3150; }
+    dialog::backdrop { background:#102b3180; }
+    .drawer-backdrop { position:fixed; inset:0; background:#102b3180; z-index:20; }
+    .drawer { position:fixed; top:0; right:0; bottom:0; z-index:21; width:min(460px,100vw); overflow-y:auto; background:#fff; padding:26px; box-shadow:-12px 0 40px #102b3128; }
+    .drawer-head { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+    .drawer dl { display:grid; grid-template-columns:130px 1fr; gap:12px; }
+    .drawer dt { color:#62757b; }
+    .drawer dd { margin:0; overflow-wrap:anywhere; }
+    .stack { display: flex; gap: 8px; flex-wrap: wrap; }
+    .conversation-list { max-height: 540px; overflow-y: auto; }
+    .conversation-list button { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid #e7eeed; padding: 13px 4px; background: white; cursor: pointer; font: inherit; }
+    .conversation-list button:hover { color: #176c69; }
+    .messages { min-height: 260px; max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .bubble { max-width: 86%; padding: 10px 13px; border-radius: 12px; background: #edf1f0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bubble.out { background: #d9f1e9; align-self: flex-end; }
+    .hidden { display: none !important; }
+    [hidden] { display: none !important; }
+    #notice { position: fixed; bottom: 18px; right: 18px; z-index: 10; padding: 12px 18px; background: #102b31; color: white; border-radius: 10px; max-width: 360px; box-shadow: 0 8px 30px #1237; }
+    #qr { max-width: 270px; width: 100%; margin-top: 16px; border: 1px solid #ddd; border-radius: 12px; }
+    @media (max-width: 800px) { .layout { display: block; } aside { padding: 12px; } .brand { padding: 4px 8px 12px; font-size: 21px; } nav { display: flex; overflow-x: auto; } nav button, nav a { white-space: nowrap; width: auto; } main { padding: 20px 14px; } .grid { grid-template-columns: 1fr; } .service-table { min-width:600px; } #services-list { overflow-x:auto; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">recepia <small id="company-name">Gestão da empresa</small></div>
+    <nav id="main-nav" aria-label="Seções"></nav>
+  </aside>
+  <main>
+    <header><div><h1 id="page-title">Visão geral</h1><p id="page-subtitle" class="muted" style="margin:5px 0 0"></p></div><span id="today" class="muted"></span></header>
+    <section id="overview">
+      <div id="metrics" class="metrics"></div>
+      <div class="panel"><h2 id="onboarding-title">Primeiros passos</h2><p id="onboarding-hint" class="muted"></p><div id="onboarding-list"></div></div>
+      <div class="panel"><h2>Conexão</h2><p id="overview-whatsapp" class="muted">Carregando...</p></div>
+    </section>
+    <section id="conversations" class="hidden">
+      <div class="grid">
+        <div class="panel"><h2>Conversas recentes</h2><div id="conversation-list" class="conversation-list"></div></div>
+        <div class="panel"><h2 id="conversation-title">Selecione uma conversa</h2><div id="messages" class="messages"></div>
+          <div class="stack" style="margin:16px 0"><button id="takeover" class="secondary hidden">Assumir atendimento</button><button id="return-ai" class="secondary hidden">Devolver para IA</button></div>
+          <form id="reply-form" class="hidden"><div class="field"><label for="reply">Responder pelo WhatsApp</label><textarea id="reply" required maxlength="4000"></textarea></div><button class="primary">Enviar resposta</button></form>
+        </div>
+      </div>
+    </section>
+    <section id="agenda" class="hidden">
+      <div class="panel">
+        <div class="stack"><label for="agenda-date">Data</label><input id="agenda-date" type="date" style="max-width:190px"><select id="agenda-view" style="max-width:170px"><option value="day">Dia</option><option value="week">Semana</option></select><button id="agenda-refresh" class="secondary">Atualizar</button></div>
+        <div id="agenda-list"></div>
+      </div>
+      <form id="appointment-form" class="panel"><h2 id="appointment-form-title">Novo agendamento</h2>
+        <div class="grid"><div class="field"><label id="appointment-customer-label" for="appointment-customer">Cliente</label><select id="appointment-customer" required></select></div><div class="field"><label id="appointment-service-label" for="appointment-service">Serviço</label><select id="appointment-service" required></select></div>
+        <div class="field" id="appointment-vehicle-field" hidden><label for="appointment-vehicle">Veículo</label><select id="appointment-vehicle"></select></div><div class="field" id="appointment-pet-field" hidden><label for="appointment-pet">Pet</label><select id="appointment-pet"></select></div><div class="field"><label id="appointment-professional-label" for="appointment-professional">Profissional</label><select id="appointment-professional"></select></div><div class="field"><label for="appointment-date">Data e hora</label><input id="appointment-date" type="datetime-local" required></div></div>
+        <div id="appointment-extra-fields"></div><div class="stack"><button class="primary">Salvar agendamento</button><button id="appointment-cancel-edit" type="button" class="secondary hidden">Cancelar edição</button></div>
+      </form>
+      <div class="panel"><h2>Bloquear período</h2><form id="block-form" class="grid"><div class="field"><label for="block-start">Início</label><input id="block-start" type="datetime-local" required></div><div class="field"><label for="block-end">Fim</label><input id="block-end" type="datetime-local" required></div><div class="field"><label for="block-reason">Motivo</label><input id="block-reason" maxlength="120" value="Bloqueio"></div><div class="field"><label for="block-professional">Profissional (opcional)</label><select id="block-professional"></select></div><button class="secondary">Criar bloqueio</button></form><div id="block-list"></div></div>
+    </section>
+    <section id="customers" class="hidden"><div class="grid"><div class="panel"><h2 id="customers-heading">Clientes</h2><div id="customers-list"></div></div><form id="customer-form" class="panel"><h2 id="customer-form-title">Novo cliente</h2><div class="field"><label for="customer-name">Nome</label><input id="customer-name" required></div><div class="field"><label for="customer-phone">WhatsApp</label><input id="customer-phone" required></div><div class="field"><label for="customer-email">Email</label><input id="customer-email" type="email"></div><div class="field"><label for="customer-notes">Observações</label><textarea id="customer-notes"></textarea></div><div id="customer-extra-fields"></div><div class="stack"><button class="primary">Salvar cliente</button><button id="customer-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div><div id="customer-profile" class="panel hidden"><h2 id="customer-profile-title">Histórico</h2><div id="customer-profile-content"></div></div></section>
+    <section id="professionals" class="hidden"><div class="grid"><div class="panel"><h2 id="professionals-heading">Profissionais</h2><div id="professionals-list"></div></div><form id="professional-form" class="panel"><h2 id="professional-form-title">Novo profissional</h2><div class="field"><label for="professional-name">Nome</label><input id="professional-name" required></div><div class="field"><label for="professional-phone">Telefone</label><input id="professional-phone"></div><div class="field"><label for="professional-email">Email</label><input id="professional-email" type="email"></div><div class="field"><label id="professional-services-label" for="professional-services">Serviços atendidos (sem seleção = todos)</label><select id="professional-services" multiple size="5"></select></div><div class="field"><label><input id="professional-active" type="checkbox" checked style="width:auto"> Ativo</label></div><div class="stack"><button class="primary">Salvar profissional</button><button id="professional-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div><div id="professional-hours-panel" class="panel hidden"><h2>Jornada do profissional</h2><p id="professional-hours-name" class="muted"></p><div id="professional-hours-list"></div></div></section>
+    <section id="hours" class="hidden"><div class="panel"><h2>Horários de funcionamento</h2><div id="hours-list"></div></div></section>
+    <section id="services" class="hidden">
+      <div class="grid">
+        <div class="panel"><h2 id="services-heading">Serviços cadastrados</h2><div id="services-list"></div></div>
+        <form id="service-form" class="panel"><h2 id="service-form-title">Novo serviço</h2>
+          <div class="field"><label for="service-name">Nome</label><input id="service-name" required maxlength="120"></div>
+          <div class="field"><label for="service-description">Descrição</label><textarea id="service-description" maxlength="5000"></textarea></div>
+          <div class="field"><label for="service-price">Preço (R$)</label><input id="service-price" type="number" min="0" step="0.01"></div>
+          <div class="grid"><div class="field"><label for="service-duration">Duração</label><input id="service-duration" type="number" min="5" max="480" step="1" value="30" required></div><div class="field"><label for="service-duration-unit">Unidade</label><select id="service-duration-unit"><option value="minutes">Minutos</option><option value="hours">Horas</option></select></div></div>
+          <div class="field"><label><input id="service-active" type="checkbox" checked style="width:auto"> Ativo</label></div>
+          <div class="stack"><button class="primary">Salvar serviço</button><button id="service-cancel" type="button" class="secondary hidden">Cancelar edição</button></div>
+        </form>
+      </div>
+    </section>
+    <section id="business" class="hidden">
+      <div class="grid">
+        <form id="business-form" class="panel"><h2>Dados da empresa</h2>
+          <div class="field"><label for="business-id">ID da empresa para login em várias contas</label><input id="business-id" readonly></div>
+          <div class="field"><label for="business-name">Nome</label><input id="business-name" required></div>
+          <div class="field"><label for="business-type">Segmento</label><select id="business-type"></select></div>
+          <div class="field"><label for="business-phone">Telefone</label><input id="business-phone"></div>
+          <div class="field"><label for="business-email">Email</label><input id="business-email" type="email"></div>
+          <div class="field"><label for="business-timezone">Timezone IANA</label><input id="business-timezone" required></div>
+          <div class="field"><label for="business-street">Rua</label><input id="business-street"></div>
+          <div class="field"><label for="business-number">Número</label><input id="business-number"></div>
+          <div class="field"><label for="business-city">Cidade</label><input id="business-city"></div>
+          <div class="field"><label for="business-state">UF</label><input id="business-state" maxlength="2"></div>
+          <div class="field"><label for="business-zip">CEP</label><input id="business-zip" maxlength="8"></div>
+          <div id="business-extra-fields"></div>
+          <button class="primary">Salvar empresa</button>
+        </form>
+      </div>
+    </section>
+    <section id="settings" class="hidden">
+      <div class="grid">
+        <form id="settings-form" class="panel"><h2>Atendimento por IA</h2>
+          <div class="field"><label for="settings-description">Descrição do negócio</label><textarea id="settings-description"></textarea></div>
+          <div class="field"><label for="settings-instructions">Instruções personalizadas</label><textarea id="settings-instructions"></textarea></div>
+          <div class="field"><label for="settings-rules">Regras de agendamento</label><textarea id="settings-rules"></textarea></div>
+          <div class="field"><label for="settings-cancellation">Política de cancelamento</label><textarea id="settings-cancellation"></textarea></div>
+          <div class="field"><label for="settings-support">Telefone do suporte humano</label><input id="settings-support"></div>
+          <button class="primary">Salvar configurações</button>
+        </form>
+      </div>
+    </section>
+    <section id="plan" class="hidden"><div class="panel"><h2>Seu plano</h2><p id="plan-summary" class="muted">Carregando...</p></div></section>
+    <section id="vehicles" class="hidden"><div class="grid"><div class="panel"><h2>Veículos cadastrados</h2><div id="vehicles-list"></div></div><form id="vehicle-form" class="panel"><h2 id="vehicle-form-title">Novo veículo</h2><div class="field"><label for="vehicle-customer">Cliente</label><select id="vehicle-customer" required></select></div><div class="grid"><div class="field"><label for="vehicle-plate">Placa</label><input id="vehicle-plate" required maxlength="8" placeholder="ABC1D23"></div><div class="field"><label for="vehicle-brand">Marca</label><input id="vehicle-brand" maxlength="80"></div><div class="field"><label for="vehicle-model">Modelo</label><input id="vehicle-model" maxlength="80"></div><div class="field"><label for="vehicle-year">Ano</label><input id="vehicle-year" type="number" min="1900" max="2100"></div><div class="field"><label for="vehicle-color">Cor</label><input id="vehicle-color" maxlength="40"></div><div id="vehicle-km-field" class="field" hidden><label for="vehicle-km">Quilometragem</label><input id="vehicle-km" type="number" min="0"></div></div><div class="field"><label for="vehicle-notes">Observações</label><textarea id="vehicle-notes"></textarea></div><div class="stack"><button class="primary">Salvar veículo</button><button id="vehicle-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div></section>
+    <section id="work_orders" class="hidden"><div class="grid"><div class="panel"><h2>Ordens de serviço</h2><div id="orders-list"></div></div><form id="order-form" class="panel"><h2>Nova ordem de serviço</h2><div class="field"><label for="order-customer">Cliente</label><select id="order-customer" required></select></div><div class="field"><label for="order-vehicle">Veículo</label><select id="order-vehicle" required></select></div><div class="field"><label for="order-service">Serviço</label><select id="order-service"></select></div><div class="field"><label for="order-description">Descrição do problema ou serviço</label><textarea id="order-description" required minlength="2"></textarea></div><div class="field"><label for="order-value">Valor estimado (R$)</label><input id="order-value" type="number" min="0" step="0.01"></div><div class="field"><label for="order-notes">Observações</label><textarea id="order-notes"></textarea></div><button class="primary">Criar ordem</button></form></div></section>
+    <section id="pets" class="hidden"><div class="grid"><div class="panel"><h2>Pets cadastrados</h2><div id="pets-list"></div></div><form id="pet-form" class="panel"><h2 id="pet-form-title">Novo pet</h2><div class="field"><label for="pet-customer">Tutor</label><select id="pet-customer" required></select></div><div class="grid"><div class="field"><label for="pet-name">Nome</label><input id="pet-name" required maxlength="120"></div><div class="field"><label for="pet-species">Espécie</label><input id="pet-species" required maxlength="80"></div><div class="field"><label for="pet-breed">Raça</label><input id="pet-breed" maxlength="80"></div><div class="field"><label for="pet-size">Porte</label><input id="pet-size" maxlength="30"></div><div class="field"><label for="pet-age">Idade (anos)</label><input id="pet-age" type="number" min="0" max="100"></div></div><div class="field"><label for="pet-notes">Observações</label><textarea id="pet-notes"></textarea></div><div class="stack"><button class="primary">Salvar pet</button><button id="pet-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div></section>
+    <section id="rooms" class="hidden"><div class="grid"><div class="panel"><h2>Quartos</h2><div id="rooms-list"></div></div><form id="room-form" class="panel"><h2 id="room-form-title">Novo quarto</h2><div class="field"><label for="room-number">Número ou nome</label><input id="room-number" required maxlength="50"></div><div class="field"><label for="room-category">Categoria</label><input id="room-category" maxlength="80"></div><div class="field"><label for="room-capacity">Capacidade</label><input id="room-capacity" type="number" min="1" max="30" value="1" required></div><div class="field"><label for="room-status">Status</label><select id="room-status"><option value="DISPONIVEL">Disponível</option><option value="MANUTENCAO">Manutenção</option></select></div><div class="field"><label for="room-price">Diária (R$)</label><input id="room-price" type="number" min="0" step="0.01"></div><div class="stack"><button class="primary">Salvar quarto</button><button id="room-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div></section>
+    <section id="reservations" class="hidden"><div class="grid"><div class="panel"><h2>Reservas</h2><div id="reservations-list"></div></div><form id="reservation-form" class="panel"><h2>Nova reserva</h2><div class="field"><label for="reservation-customer">Hóspede</label><select id="reservation-customer" required></select></div><div class="field"><label for="reservation-room">Quarto</label><select id="reservation-room" required></select></div><div class="grid"><div class="field"><label for="reservation-in">Check-in</label><input id="reservation-in" type="date" required></div><div class="field"><label for="reservation-out">Check-out</label><input id="reservation-out" type="date" required></div></div><div class="field"><label for="reservation-notes">Observações</label><textarea id="reservation-notes"></textarea></div><button class="primary">Criar reserva</button></form></div></section>
+    <section id="checkins" class="hidden"><div class="panel"><h2>Check-ins pendentes</h2><div id="checkins-list"></div></div></section>
+    <section id="checkouts" class="hidden"><div class="panel"><h2>Check-outs pendentes</h2><div id="checkouts-list"></div></div></section>
+    <section id="whatsapp" class="hidden">
+      <div class="panel"><h2>Seu número de WhatsApp</h2><p id="whatsapp-status">Carregando...</p>
+        <div class="stack"><button id="connect" class="primary">Conectar WhatsApp</button><button id="reconnect" class="secondary">Reconectar</button><button id="disconnect" class="danger">Desconectar</button><button id="refresh-status" class="secondary">Atualizar status</button></div>
+        <img id="qr" alt="QR Code do WhatsApp" class="hidden">
+        <p class="muted">Escaneie o QR Code com o WhatsApp do número que atenderá seus clientes.</p>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="notice" class="hidden" role="status" aria-live="polite"></div>
+<div id="appointment-backdrop" class="drawer-backdrop hidden"></div>
+<div id="appointment-drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title"><div class="drawer-head"><div><h2 id="drawer-title">Agendamento</h2><p id="drawer-subtitle" class="muted"></p></div><button id="drawer-close" type="button" class="secondary" aria-label="Fechar painel">✕</button></div><dl id="drawer-details"></dl><div id="drawer-actions" class="stack"></div><div class="panel" style="margin-top:24px"><h2>Última interação no WhatsApp</h2><p id="drawer-conversation" class="muted">Carregando...</p></div></div>
+<dialog id="service-delete-dialog" aria-labelledby="service-delete-title"><h2 id="service-delete-title">Excluir serviço?</h2><p id="service-delete-message"></p><div class="stack" style="justify-content:flex-end"><button id="service-delete-cancel" type="button" class="secondary">Cancelar</button><button id="service-delete-confirm" type="button" class="danger">Excluir serviço</button></div></dialog>
+<script>
+const token = localStorage.getItem('recepia_token');
+if (!token) location.replace('/dashboard/');
+const $ = id => document.getElementById(id);
+let segmentConfig = null;
+const segmentCache = new Map();
+function getSegmentConfig(businessType) { return segmentCache.get(businessType) || null; }
+async function loadSegmentConfig() {
+  const config = await api('/api/negocio/segmento');
+  segmentCache.set(config.business_type, config);
+  segmentConfig = getSegmentConfig(config.business_type);
+  applySegmentConfig();
+}
+function renderExtraFields(entity) {
+  const container = $(`${entity}-extra-fields`);
+  container.replaceChildren(...(segmentConfig?.extra_fields?.[entity]||[]).filter(field=>field.type!=='entity').map(field=>{
+    const wrapper=document.createElement('div');wrapper.className='field';
+    const label=document.createElement('label');label.textContent=field.label;
+    const control=document.createElement(field.type==='textarea'?'textarea':'input');
+    control.id=`${entity}-extra-${field.key}`;control.dataset.extraKey=field.key;
+    if(field.type!=='textarea')control.type=field.type==='number'?'number':'text';
+    control.maxLength=500;label.htmlFor=control.id;
+    wrapper.append(label,control);return wrapper;
+  }));
+}
+function extraFieldValues(entity){return Object.fromEntries(Array.from($(`${entity}-extra-fields`).querySelectorAll('[data-extra-key]'),input=>[input.dataset.extraKey,input.type==='number'&&input.value!==''?Number(input.value):input.value]));}
+function fillExtraFields(entity,values){for(const input of $(`${entity}-extra-fields`).querySelectorAll('[data-extra-key]'))input.value=values?.[input.dataset.extraKey]??'';}
+function applySegmentConfig() {
+  if (!segmentConfig) return;
+  const c = segmentConfig;
+  document.documentElement.style.setProperty('--accent', c.theme.accent);
+  document.title = `Recepia · ${c.name}`;
+  $('onboarding-title').textContent = c.onboarding.title;
+  $('onboarding-hint').textContent = `${c.onboarding.customer_hint} ${c.onboarding.service_hint}`;
+  $('customers-heading').textContent = c.labels.customers;
+  $('services-heading').textContent = `${c.labels.services} cadastrados`;
+  $('professionals-heading').textContent = c.labels.professionals;
+  $('appointment-customer-label').textContent = c.labels.customer;
+  $('appointment-service-label').textContent = c.labels.service;
+  $('appointment-professional-label').textContent = c.labels.professional;
+  $('professional-services-label').textContent = `${c.labels.services} atendidos (sem seleção = todos)`;
+  $('appointment-vehicle-field').hidden = !c.modules.includes('vehicles');
+  $('appointment-vehicle').required = c.modules.includes('vehicles');
+  $('appointment-pet-field').hidden = !c.modules.includes('pets');
+  $('appointment-pet').required = c.modules.includes('pets');
+  $('vehicle-km-field').hidden = c.business_type !== 'AUTO_REPAIR';
+  ['customer','appointment','business'].forEach(renderExtraFields);
+  if (!editingCustomer) $('customer-form-title').textContent = `Novo ${c.labels.customer.toLowerCase()}`;
+  if (!editingService) $('service-form-title').textContent = `Novo ${c.labels.service.toLowerCase()}`;
+  if (!editingProfessional) $('professional-form-title').textContent = `Novo ${c.labels.professional.toLowerCase()}`;
+  if (!editingAppointment) $('appointment-form-title').textContent = `Novo ${c.labels.appointment.toLowerCase()}`;
+  const nav = $('main-nav');
+  nav.replaceChildren(...c.navigation.map(item => {
+    const control = document.createElement(item.id === 'history' ? 'a' : 'button');
+    if (item.id === 'history') control.href = '/dashboard/?legacy=1';
+    else { control.type = 'button'; control.dataset.tab = item.id; control.disabled = item.enabled===false; control.title = item.enabled===false?'Módulo em implantação':''; control.onclick = () => showTab(item.id); }
+    const icon = document.createElement('i'); icon.setAttribute('data-lucide', item.icon); icon.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span'); text.textContent = item.label;
+    control.append(icon, text);
+    return control;
+  }));
+  if (window.lucide) window.lucide.createIcons();
+  const current = document.querySelector('main section:not(.hidden)')?.id || 'overview';
+  const selected = c.navigation.find(item => item.id === current)?.id || 'overview';
+  nav.querySelector(`[data-tab="${selected}"]`)?.classList.add('active');
+}
+window.addEventListener('load', () => window.lucide?.createIcons());
+let selectedConversation = null;
+let editingService = null;
+let serviceCache = [];
+let customerCache = [];
+let professionalCache = [];
+let vehicleCache = [];
+let petCache = [];
+let orderCache = [];
+let roomCache = [];
+let reservationCache = [];
+let editingVehicle = null;
+let editingPet = null;
+let editingRoom = null;
+let editingReservation = null;
+let editingCustomer = null;
+let editingProfessional = null;
+let editingAppointment = null;
+let businessTimezone = 'America/Sao_Paulo';
+const weekdays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+function notice(message) { const box=$('notice'); box.textContent=message; box.classList.remove('hidden'); clearTimeout(window.noticeTimer); window.noticeTimer=setTimeout(()=>box.classList.add('hidden'),4000); }
+async function api(path, options={}) {
+  const response = await fetch(path,{...options,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`,...options.headers}});
+  if (response.status===401) { location.replace('/dashboard/'); throw new Error('Sessão expirada'); }
+  if (!response.ok) { let body={}; try { body=await response.json(); } catch (_) {} throw new Error(typeof body.detail==='string'?body.detail:`Erro ${response.status}`); }
+  return response.status===204?null:response.json();
+}
+async function loadOverview() {
+  const m=await api('/api/negocio/indicadores');
+  const cards=segmentConfig?.dashboard.cards||[];
+  $('metrics').replaceChildren(...cards.map(card=>createMetricCard(card,m)));
+  const status=await api('/api/whatsapp/status'); $('overview-whatsapp').textContent=status.conectado?'WhatsApp conectado':'WhatsApp desconectado';
+  await loadOnboarding(status);
+}
+function createMetricCard(card,metrics){const element=document.createElement('div');element.className='panel metric';const caption=document.createElement('span');caption.textContent=card.label;const value=document.createElement('strong');const number=metrics[card.metric];value.textContent=number==null?'—':card.format==='currency'?Number(number).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):number;value.title=number==null?'Indicador disponível após ativar o módulo correspondente':'';element.append(caption,value);return element;}
+async function loadOnboarding(whatsapp) {
+  const [business,hours,services,professionals,settings]=await Promise.all([api('/api/negocio'),api('/api/horarios'),api('/api/procedimentos'),api('/api/profissionais'),api('/api/negocio/configuracao')]);
+  const steps=[
+    ['1. Empresa e segmento',Boolean(business.nome&&business.tipo_negocio),'business'],
+    ['2. Telefone e endereço',Boolean(business.telefone&&business.endereco_rua&&business.endereco_cidade),'business'],
+    ['3. Fuso horário',Boolean(business.timezone),'business'],
+    ['4. Horários de funcionamento',hours.some(h=>h.ativo),'hours'],
+    [`5. Primeiro ${segmentConfig?.labels.service.toLowerCase()||'serviço'}`,services.length>0,'services'],
+    [`6. Primeiro ${segmentConfig?.labels.professional.toLowerCase()||'profissional'} (opcional)`,professionals.length>0,'professionals'],
+    ['7. Instruções da IA',Boolean(settings?.descricao||settings?.instrucoes_ia),'business'],
+    ['8. Conectar WhatsApp',Boolean(whatsapp.conectado),'whatsapp'],
+    ['9. Testar uma conversa pelo WhatsApp',false,'whatsapp'],
+  ];
+  $('onboarding-list').replaceChildren(...steps.map(([label,done,tab])=>{const row=document.createElement('div');row.className='row';const text=document.createElement('span');text.textContent=`${done?'✓':'○'} ${label}`;const button=actionButton(done?'Revisar':'Configurar',()=>showTab(tab));row.append(text,button);return row;}));
+}
+async function loadBusiness() {
+  const [b,c,types]=await Promise.all([api('/api/negocio'),api('/api/negocio/configuracao'),api('/api/negocio/segmentos')]);
+  businessTimezone=b.timezone;
+  $('company-name').textContent=b.nome;
+  $('business-id').value=b.id;
+  $('business-name').value=b.nome; $('business-phone').value=b.telefone||''; $('business-email').value=b.email||''; $('business-timezone').value=b.timezone;
+  $('business-street').value=b.endereco_rua||'';$('business-number').value=b.endereco_numero||'';$('business-city').value=b.endereco_cidade||'';$('business-state').value=b.endereco_uf||'';$('business-zip').value=b.endereco_cep||'';
+  $('business-type').replaceChildren(...types.map(t=>option(t.code,t.name))); $('business-type').value=b.tipo_negocio;
+  fillExtraFields('business',b.campos_extras);
+  $('settings-description').value=c?.descricao||''; $('settings-instructions').value=c?.instrucoes_ia||'';
+  $('settings-rules').value=c?.regras_agendamento||''; $('settings-cancellation').value=c?.politica_cancelamento||''; $('settings-support').value=c?.telefone_suporte_humano||'';
+  return b;
+}
+async function loadServices() {
+  serviceCache=await api('/api/procedimentos?apenas_ativos=false');
+  const table=document.createElement('table'); table.className='service-table';
+  const head=document.createElement('thead');const header=document.createElement('tr');
+  ['Serviço','Duração','Preço','Status','Ações'].forEach(label=>{const th=document.createElement('th');th.textContent=label;header.append(th);});head.append(header);
+  const body=document.createElement('tbody');
+  for(const s of serviceCache){
+    const row=document.createElement('tr');
+    const name=document.createElement('td');const title=document.createElement('strong');title.textContent=s.nome;name.append(title);
+    if(s.descricao){const desc=document.createElement('div');desc.className='muted';desc.textContent=s.descricao;name.append(desc);}
+    const duration=document.createElement('td');duration.textContent=formatDuration(s.duracao_minutos);
+    const price=document.createElement('td');price.textContent=s.preco==null?'Não informado':Number(s.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const status=document.createElement('td');status.textContent=s.ativo?'Ativo':'Inativo';
+    const actions=document.createElement('td');actions.className='stack';
+    actions.append(actionButton('Editar',()=>editService(s.id)),actionButton(s.ativo?'Inativar':'Ativar',()=>toggleService(s)));
+    if(s.ativo)actions.append(actionButton('Excluir',()=>confirmDeleteService(s),'danger'));
+    row.append(name,duration,price,status,actions);body.append(row);
+  }
+  table.append(head,body);$('services-list').replaceChildren(table);
+}
+function formatDuration(minutes){const n=Number(minutes);if(n<60||n%30!==0)return `${n} min`;const h=Math.floor(n/60);return n%60?`${h}h 30min`:`${h}h`;}
+function serviceDurationMinutes(){const raw=Number($('service-duration').value);const minutes=$('service-duration-unit').value==='hours'?raw*60:raw;if(!Number.isInteger(minutes)||minutes<5||minutes>480)throw new Error('Informe uma duração entre 5 minutos e 8 horas.');return minutes;}
+let previousDurationUnit='minutes';
+function editService(id) { const s=serviceCache.find(x=>x.id===id);if(!s)return;editingService=s.id;$('service-form-title').textContent=`Editar ${segmentConfig?.labels.service.toLowerCase()||'serviço'}`;$('service-name').value=s.nome;$('service-description').value=s.descricao||'';$('service-price').value=s.preco??'';const hours=s.duracao_minutos>=60&&s.duracao_minutos%30===0;$('service-duration-unit').value=hours?'hours':'minutes';previousDurationUnit=$('service-duration-unit').value;$('service-duration').value=hours?s.duracao_minutos/60:s.duracao_minutos;updateDurationUnit();$('service-active').checked=s.ativo;$('service-cancel').classList.remove('hidden');$('service-name').focus(); }
+function resetService() { editingService=null;$('service-form').reset();previousDurationUnit='minutes';updateDurationUnit();$('service-form-title').textContent=`Novo ${segmentConfig?.labels.service.toLowerCase()||'serviço'}`;$('service-cancel').classList.add('hidden'); }
+function updateDurationUnit(){const hours=$('service-duration-unit').value==='hours';$('service-duration').min=hours?'0.1':'5';$('service-duration').max=hours?'8':'480';$('service-duration').step=hours?'0.5':'1';}
+$('service-duration-unit').onchange=()=>{const raw=Number($('service-duration').value);const minutes=previousDurationUnit==='hours'?raw*60:raw;const next=$('service-duration-unit').value;$('service-duration').value=next==='hours'?minutes/60:minutes;previousDurationUnit=next;updateDurationUnit();};
+async function toggleService(service){try{await api(`/api/procedimentos/${service.id}`,{method:'PUT',body:JSON.stringify({ativo:!service.ativo})});await loadServices();notice(service.ativo?'Serviço inativado':'Serviço ativado');}catch(error){notice(error.message);}}
+let pendingServiceDelete=null;
+function confirmDeleteService(service){pendingServiceDelete=service;$('service-delete-message').textContent=`Tem certeza que deseja excluir ${service.nome}? O histórico será preservado.`;$('service-delete-dialog').showModal();}
+$('service-delete-cancel').onclick=()=>{$('service-delete-dialog').close();pendingServiceDelete=null;};
+$('service-delete-confirm').onclick=async()=>{if(!pendingServiceDelete)return;const service=pendingServiceDelete;try{await api(`/api/procedimentos/${service.id}`,{method:'DELETE'});$('service-delete-dialog').close();pendingServiceDelete=null;await loadServices();notice('Serviço excluído da oferta de novos agendamentos');}catch(error){notice(error.message);}};
+function option(value,label) { const item=document.createElement('option');item.value=value;item.textContent=label;return item; }
+function actionButton(label,click,kind='secondary') { const button=document.createElement('button');button.type='button';button.className=kind;button.textContent=label;button.onclick=click;return button; }
+async function loadCustomers() {
+  customerCache=await api('/api/pacientes');
+  $('customers-list').replaceChildren(...customerCache.map(c=>{const row=document.createElement('div');row.className='row';const text=document.createElement('div');const title=document.createElement('strong');title.textContent=c.nome;const meta=document.createElement('div');meta.className='muted';meta.textContent=[c.telefone,c.email].filter(Boolean).join(' · ');text.append(title,meta);const actions=document.createElement('div');actions.className='stack';actions.append(actionButton('Histórico',()=>loadCustomerProfile(c.id)),actionButton('Editar',()=>editCustomer(c.id)),actionButton('Excluir',async()=>{if(!confirm(`Excluir ${c.nome}?`))return;try{await api(`/api/pacientes/${c.id}`,{method:'DELETE'});await loadCustomers();notice('Cliente excluído');}catch(error){notice(error.message);}},'danger'));row.append(text,actions);return row;}));
+}
+async function loadCustomerProfile(id){
+  const customer=customerCache.find(c=>c.id===id);if(!customer)return;
+  const [appointments,conversations,vehicles,pets]=await Promise.all([
+    api('/api/agendamentos'),api('/api/conversas'),
+    segmentConfig?.modules.includes('vehicles')?api(`/api/veiculos?paciente_id=${encodeURIComponent(id)}&apenas_ativos=false`):Promise.resolve([]),
+    segmentConfig?.modules.includes('pets')?api(`/api/pets?paciente_id=${encodeURIComponent(id)}&apenas_ativos=false`):Promise.resolve([]),
+  ]);
+  $('customer-profile-title').textContent=`${customer.nome} · histórico`;
+  $('customer-profile').classList.remove('hidden');
+  const content=$('customer-profile-content');content.replaceChildren();
+  const add=(label,items)=>{
+    const h=document.createElement('h3');h.textContent=label;content.append(h);
+    if(!items.length){const p=document.createElement('p');p.className='muted';p.textContent='Nenhum registro.';content.append(p);}
+    else for(const value of items){const p=document.createElement('p');p.textContent=value;content.append(p);}
+  };
+  const extras=(segmentConfig?.extra_fields?.customer||[]).filter(f=>customer.campos_extras?.[f.key]).map(f=>`${f.label}: ${customer.campos_extras[f.key]}`);
+  if(extras.length)add('Dados adicionais',extras);
+  if(vehicles.length)add('Veículos',vehicles.map(v=>`${v.placa} · ${v.marca||''} ${v.modelo||''}`));
+  if(pets.length)add('Pets',pets.map(p=>`${p.nome} · ${p.especie}${p.ativo?'':' · inativo'}`));
+  add('Agendamentos',appointments.filter(a=>a.paciente_id===id).map(a=>`${formatAppointment(a.data_hora_utc||`${a.data_hora}Z`)} · ${a.servico||'Serviço'} · ${a.status}`));
+  add('Conversas',conversations.filter(c=>c.cliente_id===id).map(c=>`${c.telefone} · ${c.ultima_mensagem_em||'Sem mensagens'}`));
+  $('customer-profile').scrollIntoView({behavior:'smooth'});
+}
+function editCustomer(id) { const c=customerCache.find(item=>item.id===id);if(!c)return;editingCustomer=id;$('customer-form-title').textContent='Editar cliente';$('customer-name').value=c.nome;$('customer-phone').value=c.telefone;$('customer-email').value=c.email||'';$('customer-notes').value=c.notas||'';fillExtraFields('customer',c.campos_extras);$('customer-cancel').classList.remove('hidden');$('customer-name').focus(); }
+function resetCustomer() { editingCustomer=null;$('customer-form').reset();$('customer-form-title').textContent='Novo cliente';$('customer-cancel').classList.add('hidden'); }
+async function loadVehicles() {
+  [vehicleCache,customerCache]=await Promise.all([api('/api/veiculos?apenas_ativos=false'),api('/api/pacientes')]);
+  $('vehicle-customer').replaceChildren(option('','Selecione um cliente'),...customerCache.map(c=>option(c.id,c.nome)));
+  const rows=vehicleCache.map(v=>{const row=document.createElement('div');row.className='row';const info=document.createElement('div');const name=customerCache.find(c=>c.id===v.paciente_id)?.nome||'Cliente';const title=document.createElement('strong');title.textContent=`${v.placa} · ${v.marca||''} ${v.modelo||''}`.trim();const meta=document.createElement('div');meta.className='muted';meta.textContent=`${name}${v.ano?` · ${v.ano}`:''}${v.cor?` · ${v.cor}`:''}${v.ativo?'':' · inativo'}`;info.append(title,meta);const actions=document.createElement('div');actions.className='stack';actions.append(actionButton('Editar',()=>editVehicle(v.id)));if(v.ativo)actions.append(actionButton('Inativar',()=>deactivateVehicle(v),'danger'));row.append(info,actions);return row;});
+  $('vehicles-list').replaceChildren(...rows);
+  if(!rows.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum veículo cadastrado.';$('vehicles-list').append(empty);}
+}
+function editVehicle(id){const v=vehicleCache.find(item=>item.id===id);if(!v)return;editingVehicle=id;$('vehicle-form-title').textContent='Editar veículo';$('vehicle-customer').value=v.paciente_id;$('vehicle-plate').value=v.placa;$('vehicle-brand').value=v.marca||'';$('vehicle-model').value=v.modelo||'';$('vehicle-year').value=v.ano||'';$('vehicle-color').value=v.cor||'';$('vehicle-km').value=v.km??'';$('vehicle-notes').value=v.observacoes||'';$('vehicle-cancel').classList.remove('hidden');$('vehicle-plate').focus();}
+function resetVehicle(){editingVehicle=null;$('vehicle-form').reset();$('vehicle-form-title').textContent='Novo veículo';$('vehicle-cancel').classList.add('hidden');}
+async function deactivateVehicle(vehicle){if(!confirm(`Inativar o veículo ${vehicle.placa}? O histórico será preservado.`))return;try{await api(`/api/veiculos/${vehicle.id}`,{method:'DELETE'});await loadVehicles();notice('Veículo inativado');}catch(error){notice(error.message);}}
+$('vehicle-form').onsubmit=async e=>{e.preventDefault();const body={paciente_id:$('vehicle-customer').value,placa:$('vehicle-plate').value.trim().toUpperCase(),marca:$('vehicle-brand').value||null,modelo:$('vehicle-model').value||null,ano:$('vehicle-year').value?Number($('vehicle-year').value):null,cor:$('vehicle-color').value||null,km:$('vehicle-km').value?Number($('vehicle-km').value):null,observacoes:$('vehicle-notes').value||null};try{await api(editingVehicle?`/api/veiculos/${editingVehicle}`:'/api/veiculos',{method:editingVehicle?'PUT':'POST',body:JSON.stringify(body)});resetVehicle();await loadVehicles();notice('Veículo salvo');}catch(error){notice(error.message);}};
+$('vehicle-cancel').onclick=resetVehicle;
+function entityRow(title,details,actions=[]){const row=document.createElement('div');row.className='row';const text=document.createElement('div');const heading=document.createElement('strong');heading.textContent=title;const meta=document.createElement('div');meta.className='muted';meta.textContent=details;text.append(heading,meta);const buttons=document.createElement('div');buttons.className='stack';buttons.append(...actions);row.append(text,buttons);return row;}
+function renderEntityList(id,rows,empty){$(id).replaceChildren(...rows);if(!rows.length){const p=document.createElement('p');p.className='muted';p.textContent=empty;$(id).append(p);}}
+function customerName(id){return customerCache.find(c=>c.id===id)?.nome||'Cliente';}
+async function loadPets(){[petCache,customerCache]=await Promise.all([api('/api/pets?apenas_ativos=false'),api('/api/pacientes')]);$('pet-customer').replaceChildren(option('','Selecione um tutor'),...customerCache.map(c=>option(c.id,c.nome)));renderEntityList('pets-list',petCache.map(p=>entityRow(`${p.nome} · ${p.especie}`,`${customerName(p.paciente_id)}${p.raca?` · ${p.raca}`:''}${p.porte?` · ${p.porte}`:''}${p.ativo?'':' · inativo'}`,[actionButton('Editar',()=>editPet(p)),p.ativo?actionButton('Inativar',()=>deactivatePet(p),'danger'):actionButton('Reativar',()=>reactivatePet(p))])),'Nenhum pet cadastrado.');}
+function editPet(p){editingPet=p.id;$('pet-form-title').textContent='Editar pet';$('pet-customer').value=p.paciente_id;$('pet-customer').disabled=true;$('pet-name').value=p.nome;$('pet-species').value=p.especie;$('pet-breed').value=p.raca||'';$('pet-size').value=p.porte||'';$('pet-age').value=p.idade_anos??'';$('pet-notes').value=p.observacoes||'';$('pet-cancel').classList.remove('hidden');$('pet-name').focus();}
+function resetPet(){editingPet=null;$('pet-form').reset();$('pet-customer').disabled=false;$('pet-form-title').textContent='Novo pet';$('pet-cancel').classList.add('hidden');}
+async function deactivatePet(p){if(!confirm(`Inativar ${p.nome}? O histórico será preservado.`))return;try{await api(`/api/pets/${p.id}`,{method:'DELETE'});await loadPets();notice('Pet inativado');}catch(error){notice(error.message);}}
+async function reactivatePet(p){try{await api(`/api/pets/${p.id}`,{method:'PUT',body:JSON.stringify({ativo:true})});await loadPets();notice('Pet reativado');}catch(error){notice(error.message);}}
+$('pet-form').onsubmit=async e=>{e.preventDefault();const body={nome:$('pet-name').value.trim(),especie:$('pet-species').value.trim(),raca:$('pet-breed').value||null,porte:$('pet-size').value||null,idade_anos:$('pet-age').value?Number($('pet-age').value):null,observacoes:$('pet-notes').value||null};if(!editingPet)body.paciente_id=$('pet-customer').value;try{await api(editingPet?`/api/pets/${editingPet}`:'/api/pets',{method:editingPet?'PUT':'POST',body:JSON.stringify(body)});resetPet();await loadPets();notice('Pet salvo');}catch(error){notice(error.message);}};
+$('pet-cancel').onclick=resetPet;
+function updateOrderVehicles(){const owner=$('order-customer').value;$('order-vehicle').replaceChildren(option('','Selecione um veículo'),...vehicleCache.filter(v=>v.ativo&&v.paciente_id===owner).map(v=>option(v.id,`${v.placa} · ${v.modelo||''}`)));}
+$('order-customer').onchange=updateOrderVehicles;
+async function loadOrders(){[orderCache,customerCache,vehicleCache,serviceCache]=await Promise.all([api('/api/ordens-servico'),api('/api/pacientes'),api('/api/veiculos?apenas_ativos=false'),api('/api/procedimentos')]);$('order-customer').replaceChildren(option('','Selecione um cliente'),...customerCache.map(c=>option(c.id,c.nome)));updateOrderVehicles();$('order-service').replaceChildren(option('','Sem serviço específico'),...serviceCache.map(s=>option(s.id,s.nome)));renderEntityList('orders-list',orderCache.map(o=>entityRow(`${vehicleCache.find(v=>v.id===o.veiculo_id)?.placa||'Veículo'} · ${customerName(o.paciente_id)}`,`${o.descricao} · ${o.status}${o.valor!=null?` · ${Number(o.valor).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`:''}`,[...(['ABERTA','EM_ANDAMENTO'].includes(o.status)?[actionButton('Concluir',()=>setOrderStatus(o,'CONCLUIDA')),actionButton('Cancelar',()=>setOrderStatus(o,'CANCELADA'),'danger')]:[]),...(o.status==='ABERTA'?[actionButton('Iniciar',()=>setOrderStatus(o,'EM_ANDAMENTO'))]:[])])),'Nenhuma ordem de serviço.');}
+async function setOrderStatus(order,status){try{await api(`/api/ordens-servico/${order.id}`,{method:'PATCH',body:JSON.stringify({status})});await loadOrders();notice('Ordem atualizada');}catch(error){notice(error.message);}}
+$('order-form').onsubmit=async e=>{e.preventDefault();const body={paciente_id:$('order-customer').value,veiculo_id:$('order-vehicle').value,procedimento_id:$('order-service').value||null,descricao:$('order-description').value.trim(),valor:$('order-value').value||null,observacoes:$('order-notes').value||null};try{await api('/api/ordens-servico',{method:'POST',body:JSON.stringify(body)});$('order-form').reset();await loadOrders();notice('Ordem criada');}catch(error){notice(error.message);}};
+async function loadRooms(){roomCache=await api('/api/quartos?apenas_ativos=false');renderEntityList('rooms-list',roomCache.map(r=>entityRow(`Quarto ${r.numero}`,`${r.categoria||'Sem categoria'} · ${r.capacidade} pessoa(s) · ${r.ativo?r.status:'INATIVO'}${r.valor_diaria!=null?` · ${Number(r.valor_diaria).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}/noite`:''}`,[actionButton('Editar',()=>editRoom(r)),r.ativo?actionButton('Inativar',()=>deactivateRoom(r),'danger'):actionButton('Reativar',()=>reactivateRoom(r))])),'Nenhum quarto cadastrado.');}
+function editRoom(r){editingRoom=r.id;$('room-form-title').textContent='Editar quarto';$('room-number').value=r.numero;$('room-category').value=r.categoria||'';$('room-capacity').value=r.capacidade;$('room-status').value=r.status;$('room-price').value=r.valor_diaria??'';$('room-cancel').classList.remove('hidden');$('room-number').focus();}
+function resetRoom(){editingRoom=null;$('room-form').reset();$('room-form-title').textContent='Novo quarto';$('room-cancel').classList.add('hidden');}
+async function deactivateRoom(r){if(!confirm(`Inativar o quarto ${r.numero}? As reservas antigas serão preservadas.`))return;try{await api(`/api/quartos/${r.id}`,{method:'DELETE'});await loadRooms();notice('Quarto inativado');}catch(error){notice(error.message);}}
+async function reactivateRoom(r){try{await api(`/api/quartos/${r.id}`,{method:'PUT',body:JSON.stringify({ativo:true})});await loadRooms();notice('Quarto reativado');}catch(error){notice(error.message);}}
+$('room-form').onsubmit=async e=>{e.preventDefault();const body={numero:$('room-number').value.trim(),categoria:$('room-category').value||null,capacidade:Number($('room-capacity').value),status:$('room-status').value,valor_diaria:$('room-price').value||null};try{await api(editingRoom?`/api/quartos/${editingRoom}`:'/api/quartos',{method:editingRoom?'PUT':'POST',body:JSON.stringify(body)});resetRoom();await loadRooms();notice('Quarto salvo');}catch(error){notice(error.message);}};
+$('room-cancel').onclick=resetRoom;
+async function loadReservations(tab='reservations'){[reservationCache,customerCache,roomCache]=await Promise.all([api('/api/reservas-hotel'),api('/api/pacientes'),api('/api/quartos?apenas_ativos=false')]);$('reservation-customer').replaceChildren(option('','Selecione um hóspede'),...customerCache.map(c=>option(c.id,c.nome)));$('reservation-room').replaceChildren(option('','Selecione um quarto'),...roomCache.filter(r=>r.ativo&&r.status==='DISPONIVEL').map(r=>option(r.id,`Quarto ${r.numero} · ${r.categoria||''}`)));const today=dateOnly(new Date());const display=tab==='checkins'?reservationCache.filter(r=>r.status==='RESERVADA'&&r.check_in<=today):tab==='checkouts'?reservationCache.filter(r=>r.status==='CHECK_IN'&&r.check_out<=today):reservationCache;renderEntityList(tab==='checkins'?'checkins-list':tab==='checkouts'?'checkouts-list':'reservations-list',display.map(r=>entityRow(`${customerName(r.paciente_id)} · quarto ${roomCache.find(x=>x.id===r.quarto_id)?.numero||'?'}`,`${r.check_in} → ${r.check_out} · ${r.status}${r.valor_previsto!=null?` · ${Number(r.valor_previsto).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`:''}`,[...(r.status==='RESERVADA'?[actionButton('Editar',()=>editReservation(r)),actionButton('Check-in',()=>setReservationStatus(r,'CHECK_IN')),actionButton('Cancelar',()=>setReservationStatus(r,'CANCELADA'),'danger')]:[]),...(r.status==='CHECK_IN'?[actionButton('Check-out',()=>setReservationStatus(r,'CHECK_OUT'))]:[])])),tab==='checkins'?'Nenhum check-in pendente.':tab==='checkouts'?'Nenhum check-out pendente.':'Nenhuma reserva cadastrada.');}
+async function editReservation(r){await showTab('reservations');editingReservation=r.id;$('reservation-customer').value=r.paciente_id;$('reservation-customer').disabled=true;if(!Array.from($('reservation-room').options).some(o=>o.value===r.quarto_id))$('reservation-room').append(option(r.quarto_id,`Quarto ${roomCache.find(x=>x.id===r.quarto_id)?.numero||'?'}`));$('reservation-room').value=r.quarto_id;$('reservation-in').value=r.check_in;$('reservation-out').value=r.check_out;$('reservation-notes').value=r.observacoes||'';$('reservation-form').querySelector('h2').textContent='Editar reserva';$('reservation-form').querySelector('button').textContent='Salvar reserva';$('reservation-form').scrollIntoView({behavior:'smooth'});}
+function resetReservation(){editingReservation=null;$('reservation-form').reset();$('reservation-customer').disabled=false;$('reservation-form').querySelector('h2').textContent='Nova reserva';$('reservation-form').querySelector('button').textContent='Criar reserva';}
+async function setReservationStatus(r,status){try{await api(`/api/reservas-hotel/${r.id}`,{method:'PATCH',body:JSON.stringify({status})});await loadReservations(document.querySelector('main section:not(.hidden)')?.id||'reservations');notice('Reserva atualizada');}catch(error){notice(error.message);}}
+$('reservation-form').onsubmit=async e=>{e.preventDefault();const body={quarto_id:$('reservation-room').value,check_in:$('reservation-in').value,check_out:$('reservation-out').value,observacoes:$('reservation-notes').value||null};if(!editingReservation)body.paciente_id=$('reservation-customer').value;try{await api(editingReservation?`/api/reservas-hotel/${editingReservation}`:'/api/reservas-hotel',{method:editingReservation?'PATCH':'POST',body:JSON.stringify(body)});resetReservation();await loadReservations();notice('Reserva salva');}catch(error){notice(error.message);}};
+async function loadProfessionals() {
+  [professionalCache,serviceCache]=await Promise.all([api('/api/profissionais?incluir_inativos=true'),api('/api/procedimentos')]);
+  $('professional-services').replaceChildren(...serviceCache.map(s=>option(s.id,s.nome)));
+  $('professionals-list').replaceChildren(...professionalCache.map(p=>{const row=document.createElement('div');row.className='row';const text=document.createElement('div');const title=document.createElement('strong');title.textContent=p.nome+(p.ativo?'':' · inativo');const meta=document.createElement('div');meta.className='muted';meta.textContent=[p.telefone,p.email].filter(Boolean).join(' · ');text.append(title,meta);row.append(text,actionButton('Editar',()=>editProfessional(p.id)));return row;}));
+  await loadHours();
+}
+async function editProfessional(id) { const p=professionalCache.find(item=>item.id===id);if(!p)return;editingProfessional=id;$('professional-form-title').textContent='Editar profissional';$('professional-name').value=p.nome;$('professional-phone').value=p.telefone||'';$('professional-email').value=p.email||'';$('professional-active').checked=p.ativo;$('professional-cancel').classList.remove('hidden');try{const [links,hours]=await Promise.all([api(`/api/agenda/profissionais/${id}/servicos`),api(`/api/agenda/profissionais/${id}/horarios`)]);for(const item of $('professional-services').options)item.selected=links.procedimento_ids.includes(item.value);$('professional-hours-panel').classList.remove('hidden');$('professional-hours-name').textContent=p.nome;renderProfessionalHours(id,hours);}catch(error){notice(error.message);}$('professional-name').focus(); }
+function resetProfessional() { editingProfessional=null;$('professional-form').reset();$('professional-form-title').textContent='Novo profissional';$('professional-cancel').classList.add('hidden');$('professional-hours-panel').classList.add('hidden'); }
+function renderProfessionalHours(id,hours) { $('professional-hours-list').replaceChildren(...weekdays.map((day,index)=>{const current=hours.find(h=>h.dia_semana===index);const row=document.createElement('div');row.className='row stack';const label=document.createElement('strong');label.textContent=day;const start=document.createElement('input');start.type='time';start.value=current?.hora_inicio||'09:00';start.style.maxWidth='125px';const end=document.createElement('input');end.type='time';end.value=current?.hora_fim||'18:00';end.style.maxWidth='125px';const active=document.createElement('input');active.type='checkbox';active.checked=current?.ativo??true;active.style.width='auto';row.append(label,start,end,active,actionButton('Salvar',async()=>{try{await api(`/api/agenda/profissionais/${id}/horarios/${index}`,{method:'PUT',body:JSON.stringify({hora_inicio:start.value,hora_fim:end.value,ativo:active.checked})});notice(`Jornada de ${day} salva`);}catch(error){notice(error.message);}}));return row;})); }
+async function loadHours() {
+  const hours=await api('/api/horarios');
+  $('hours-list').replaceChildren(...weekdays.map((day,index)=>{const current=hours.find(h=>h.dia_semana===index);const row=document.createElement('div');row.className='row stack';const label=document.createElement('strong');label.textContent=day;const start=document.createElement('input');start.type='time';start.value=current?.hora_inicio||'09:00';start.style.maxWidth='125px';const end=document.createElement('input');end.type='time';end.value=current?.hora_fim||'18:00';end.style.maxWidth='125px';const active=document.createElement('input');active.type='checkbox';active.checked=current?.ativo??(index<5);active.style.width='auto';const save=actionButton('Salvar',async()=>{try{await api(`/api/horarios/${index}`,{method:'PUT',body:JSON.stringify({hora_inicio:start.value,hora_fim:end.value,intervalo_slot_min:current?.intervalo_slot_min||30,ativo:active.checked})});notice(`Horário de ${day} salvo`);}catch(error){notice(error.message);}});row.append(label,start,end,active,save);return row;}));
+}
+function tenantDateParts(value) { const parts=new Intl.DateTimeFormat('en-US',{timeZone:businessTimezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value));return Object.fromEntries(parts.map(part=>[part.type,part.value])); }
+function localDateTime(value) { const p=tenantDateParts(value);return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`; }
+function formatAppointment(value) { return new Intl.DateTimeFormat('pt-BR',{timeZone:businessTimezone,dateStyle:'short',timeStyle:'short'}).format(new Date(value)); }
+function dateOnly(value) { const p=tenantDateParts(value);return `${p.year}-${p.month}-${p.day}`; }
+function agendaPeriod() { const selected=$('agenda-date').value;const start=new Date(`${selected}T12:00:00Z`);if($('agenda-view').value==='week'){const weekday=(start.getUTCDay()+6)%7;start.setUTCDate(start.getUTCDate()-weekday);}const end=new Date(start);end.setUTCDate(end.getUTCDate()+($('agenda-view').value==='week'?6:0));return [start.toISOString().slice(0,10),end.toISOString().slice(0,10)]; }
+function resetAppointment() { editingAppointment=null;$('appointment-form').reset();$('appointment-form-title').textContent=`Novo ${segmentConfig?.labels.appointment.toLowerCase()||'agendamento'}`;$('appointment-cancel-edit').classList.add('hidden');$('appointment-customer').disabled=false;updateAppointmentVehicles();updateAppointmentPets(); }
+function updateAppointmentVehicles(currentId=null){const owner=$('appointment-customer').value;const values=vehicleCache.filter(v=>(v.ativo||v.id===currentId)&&v.paciente_id===owner);$('appointment-vehicle').replaceChildren(option('','Selecione um veículo'),...values.map(v=>option(v.id,`${v.placa} · ${v.marca||''} ${v.modelo||''}`.trim())));}
+function updateAppointmentPets(currentId=null){const owner=$('appointment-customer').value;const values=petCache.filter(p=>(p.ativo||p.id===currentId)&&p.paciente_id===owner);$('appointment-pet').replaceChildren(option('','Selecione um pet'),...values.map(p=>option(p.id,`${p.nome} · ${p.especie}`)));}
+$('appointment-customer').onchange=()=>{updateAppointmentVehicles();updateAppointmentPets();};
+function editAppointment(item) { editingAppointment=item.id;$('appointment-form-title').textContent=`Editar ${segmentConfig?.labels.appointment.toLowerCase()||'agendamento'}`;$('appointment-customer').value=item.paciente_id;updateAppointmentVehicles(item.veiculo_id);$('appointment-vehicle').value=item.veiculo_id||'';updateAppointmentPets(item.pet_id);$('appointment-pet').value=item.pet_id||'';$('appointment-customer').disabled=true;if(item.procedimento_id&&!Array.from($('appointment-service').options).some(o=>o.value===item.procedimento_id))$('appointment-service').append(option(item.procedimento_id,`${item.servico||'Serviço'} · inativo`));$('appointment-service').value=item.procedimento_id||'';$('appointment-professional').value=item.profissional_id||'';$('appointment-date').value=localDateTime(item.data_hora_utc||`${item.data_hora}Z`);fillExtraFields('appointment',item.campos_extras);$('appointment-cancel-edit').classList.remove('hidden');$('appointment-date').focus(); }
+let currentDrawerAppointment=null;
+function closeAppointmentDrawer(){currentDrawerAppointment=null;$('appointment-drawer').classList.add('hidden');$('appointment-backdrop').classList.add('hidden');}
+$('drawer-close').onclick=closeAppointmentDrawer;
+$('appointment-backdrop').onclick=closeAppointmentDrawer;
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAppointmentDrawer();});
+function drawerAction(label,item,status,kind='secondary'){return actionButton(label,async()=>{closeAppointmentDrawer();await updateAppointmentStatus(item,status);},kind);}
+async function openAppointmentDrawer(item){
+  currentDrawerAppointment=item.id;
+  const customer=customerCache.find(c=>c.id===item.paciente_id);
+  const vehicle=vehicleCache.find(v=>v.id===item.veiculo_id);
+  const pet=petCache.find(p=>p.id===item.pet_id);
+  $('drawer-title').textContent=`${segmentConfig?.labels.appointment||'Agendamento'} · ${customer?.nome||'Cliente'}`;
+  $('drawer-subtitle').textContent=item.servico||segmentConfig?.labels.service||'Serviço';
+  const date=formatAppointment(item.data_hora_utc||`${item.data_hora}Z`);
+  const details=[['Nome',customer?.nome],['Telefone',customer?.telefone],['Status',item.status],['Data e hora',date],['Serviço',item.servico],['Duração',formatDuration(item.duracao_minutos)],['Profissional',item.profissional||'Não especificado'],['Origem',item.origem||'Painel'],['Observações',item.observacoes||'—']];
+  if(vehicle)details.splice(2,0,['Veículo',`${vehicle.placa} · ${vehicle.marca||''} ${vehicle.modelo||''}`.trim()]);
+  if(pet)details.splice(2,0,['Pet',`${pet.nome} · ${pet.especie}`]);
+  for(const field of segmentConfig?.extra_fields?.appointment||[])if(field.type!=='entity'&&item.campos_extras?.[field.key])details.push([field.label,item.campos_extras[field.key]]);
+  $('drawer-details').replaceChildren(...details.flatMap(([label,value])=>{const dt=document.createElement('dt');dt.textContent=label;const dd=document.createElement('dd');dd.textContent=value||'—';return [dt,dd];}));
+  const actions=[];
+  if(item.status==='pendente')actions.push(drawerAction('Confirmar',item,'confirmado'));
+  if(['pendente','confirmado'].includes(item.status))actions.push(drawerAction('Iniciar',item,'em_andamento'));
+  if(['pendente','confirmado','em_andamento'].includes(item.status)){
+    actions.push(actionButton('Reagendar',()=>{closeAppointmentDrawer();editAppointment(item);$('appointment-form').scrollIntoView({behavior:'smooth'});}));
+    actions.push(drawerAction('Marcar concluído',item,'realizado'));
+    actions.push(drawerAction('Cancelar',item,'cancelado','danger'));
+  }
+  if(['pendente','confirmado'].includes(item.status))actions.push(drawerAction('Marcar falta',item,'no_show'));
+  $('drawer-actions').replaceChildren(...actions);
+  $('drawer-conversation').textContent='Carregando...';
+  $('appointment-drawer').classList.remove('hidden');$('appointment-backdrop').classList.remove('hidden');$('drawer-close').focus();
+  try{
+    const conversations=await api('/api/conversas');
+    const recent=conversations.find(c=>c.cliente_id===item.paciente_id);
+    if(!recent){if(currentDrawerAppointment===item.id)$('drawer-conversation').textContent='Nenhuma conversa registrada para este cliente.';return;}
+    const detail=await api(`/api/conversas/${recent.id}`);
+    const last=detail.mensagens.at(-1);
+    if(currentDrawerAppointment===item.id)$('drawer-conversation').textContent=last?.conteudo||'Nenhuma mensagem registrada.';
+  }catch(error){if(currentDrawerAppointment===item.id)$('drawer-conversation').textContent='Não foi possível carregar a conversa.';}
+}
+async function updateAppointmentStatus(item,status) { try { if(status==='cancelado'){await api(`/api/agendamentos/${item.id}`,{method:'DELETE'});}else{await api(`/api/agendamentos/${item.id}`,{method:'PUT',body:JSON.stringify({status})});}await refreshAgenda();notice('Agendamento atualizado');}catch(error){notice(error.message);} }
+async function loadAgenda() {
+  const [business,customers,services,professionals]=await Promise.all([api('/api/negocio'),api('/api/pacientes'),api('/api/procedimentos'),api('/api/profissionais')]);
+  businessTimezone=business.timezone;customerCache=customers;serviceCache=services;professionalCache=professionals;
+  vehicleCache=segmentConfig?.modules.includes('vehicles')?await api('/api/veiculos?apenas_ativos=false'):[];
+  petCache=segmentConfig?.modules.includes('pets')?await api('/api/pets?apenas_ativos=false'):[];
+  if(!$('agenda-date').value)$('agenda-date').value=dateOnly(new Date());
+  $('appointment-customer').replaceChildren(option('',`Selecione ${segmentConfig?.labels.customer.toLowerCase()||'cliente'}`),...customers.map(c=>option(c.id,c.nome)));
+  updateAppointmentVehicles();
+  updateAppointmentPets();
+  $('appointment-service').replaceChildren(option('',`Selecione ${segmentConfig?.labels.service.toLowerCase()||'serviço'}`),...services.map(s=>option(s.id,`${s.nome} · ${formatDuration(s.duracao_minutos)}`)));
+  $('appointment-professional').replaceChildren(option('','Sem profissional específico'),...professionals.map(p=>option(p.id,p.nome)));
+  $('block-professional').replaceChildren(option('','Toda a empresa'),...professionals.map(p=>option(p.id,p.nome)));
+  await refreshAgenda();
+}
+async function refreshAgenda() {
+  const [start,end]=agendaPeriod();
+  const [appointments,blocks]=await Promise.all([api(`/api/agendamentos?data_inicio=${start}&data_fim=${end}`),api(`/api/bloqueios?data_inicio=${start}&data_fim=${end}`)]);
+  $('agenda-list').replaceChildren(...appointments.map(item=>{
+    const row=document.createElement('div');row.className='row';
+    const text=document.createElement('div');const title=document.createElement('strong');
+    title.textContent=`${formatAppointment(item.data_hora_utc||`${item.data_hora}Z`)} · ${customerCache.find(c=>c.id===item.paciente_id)?.nome||segmentConfig?.labels.customer||'Cliente'}`;
+    const meta=document.createElement('div');meta.className='muted';
+    const plate=vehicleCache.find(v=>v.id===item.veiculo_id)?.placa;
+    const pet=petCache.find(p=>p.id===item.pet_id)?.nome;
+    meta.textContent=`${item.servico||segmentConfig?.labels.service||'Serviço'} · ${item.status} · ${item.profissional||'Equipe'}${plate?` · ${plate}`:''}${pet?` · ${pet}`:''}`;
+    text.append(title,meta);
+    const actions=document.createElement('div');actions.className='stack';
+    actions.append(actionButton('Detalhes',()=>openAppointmentDrawer(item)));
+    row.append(text,actions);return row;
+  }));
+  if(!appointments.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum agendamento neste período.';$('agenda-list').append(empty);}
+  $('block-list').replaceChildren(...blocks.map(item=>{const row=document.createElement('div');row.className='row';const text=document.createElement('span');text.textContent=`${formatAppointment(`${item.inicio}Z`)}–${formatAppointment(`${item.fim}Z`)} · ${item.motivo}`;row.append(text,actionButton('Remover',async()=>{try{await api(`/api/bloqueios/${item.id}`,{method:'DELETE'});await refreshAgenda();}catch(error){notice(error.message);}},'danger'));return row;}));
+}
+async function loadConversations() {
+  const rows=await api('/api/conversas');
+  $('conversation-list').replaceChildren(...rows.map(c=>{const b=document.createElement('button');b.textContent=`${c.cliente} · ${c.telefone}${c.atendimento_humano?' · humano':''}`;b.onclick=()=>openConversation(c.id,c.cliente);return b;}));
+}
+async function openConversation(id,name) {
+  selectedConversation=id;const c=await api(`/api/conversas/${id}`);$('conversation-title').textContent=name;
+  $('messages').replaceChildren(...c.mensagens.map(m=>{const p=document.createElement('div');p.className='bubble'+(m.direcao==='OUT'?' out':'');p.textContent=m.conteudo;return p;}));
+  $('messages').scrollTop=$('messages').scrollHeight;$('takeover').classList.toggle('hidden',c.atendimento_humano);$('return-ai').classList.toggle('hidden',!c.atendimento_humano);$('reply-form').classList.remove('hidden');
+}
+async function loadWhatsapp() { const s=await api('/api/whatsapp/status'); $('whatsapp-status').textContent=s.conectado?'CONECTADO':'DESCONECTADO'; $('disconnect').disabled=!s.conectado; }
+async function showTab(tab) {
+  const target = tab === 'appointments' ? 'agenda' : tab;
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==target));
+  document.querySelectorAll('#main-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  const item=segmentConfig?.navigation.find(entry=>entry.id===tab);
+  $('page-title').textContent=tab==='overview'?(segmentConfig?.dashboard.title||'Dashboard'):(item?.label||'Dashboard');
+  $('page-subtitle').textContent=tab==='overview'?(segmentConfig?.dashboard.subtitle||''):'';
+  try {
+    if(tab==='overview')await loadOverview();
+    if(tab==='conversations')await loadConversations();
+    if(target==='agenda')await loadAgenda();
+    if(tab==='customers')await loadCustomers();
+    if(tab==='vehicles')await loadVehicles();
+    if(tab==='pets')await loadPets();
+    if(tab==='work_orders')await loadOrders();
+    if(tab==='rooms')await loadRooms();
+    if(['reservations','checkins','checkouts'].includes(tab))await loadReservations(tab);
+    if(tab==='professionals')await loadProfessionals();
+    if(tab==='hours')await loadHours();
+    if(tab==='services')await loadServices();
+    if(tab==='business'||tab==='settings'||tab==='plan'){
+      const business=await loadBusiness();
+      if(tab==='plan')$('plan-summary').textContent=`Plano atual: ${business.plano}${business.trial_expira_em?` · teste até ${business.trial_expira_em}`:''}`;
+    }
+    if(tab==='whatsapp')await loadWhatsapp();
+  } catch(e) { notice(e.message); }
+}
+$('business-form').onsubmit=async e=>{e.preventDefault();const body={nome:$('business-name').value,tipo_negocio:$('business-type').value,telefone:$('business-phone').value||null,email:$('business-email').value||null,timezone:$('business-timezone').value,endereco_rua:$('business-street').value||null,endereco_numero:$('business-number').value||null,endereco_cidade:$('business-city').value||null,endereco_uf:$('business-state').value||null,endereco_cep:$('business-zip').value||null};if(body.tipo_negocio===segmentConfig?.business_type)body.campos_extras=extraFieldValues('business');try{await api('/api/negocio',{method:'PATCH',body:JSON.stringify(body)});await loadSegmentConfig();await loadBusiness();notice('Empresa salva');}catch(err){notice(err.message);}};
+$('settings-form').onsubmit=async e=>{e.preventDefault();try{await api('/api/negocio/configuracao',{method:'PATCH',body:JSON.stringify({descricao:$('settings-description').value,instrucoes_ia:$('settings-instructions').value,regras_agendamento:$('settings-rules').value,politica_cancelamento:$('settings-cancellation').value,telefone_suporte_humano:$('settings-support').value})});notice('Configurações salvas');}catch(err){notice(err.message);}};
+$('service-form').onsubmit=async e=>{e.preventDefault();try{const body={nome:$('service-name').value.trim(),descricao:$('service-description').value,preco:$('service-price').value||null,duracao_minutos:serviceDurationMinutes()};if(!body.nome)throw new Error('Informe o nome do serviço.');if(body.preco!==null&&Number(body.preco)<0)throw new Error('O preço não pode ser negativo.');if(editingService)body.ativo=$('service-active').checked;await api(editingService?`/api/procedimentos/${editingService}`:'/api/procedimentos',{method:editingService?'PUT':'POST',body:JSON.stringify(body)});resetService();await loadServices();notice('Serviço salvo');}catch(err){notice(err.message);}};
+$('service-cancel').onclick=resetService;
+$('customer-form').onsubmit=async e=>{e.preventDefault();const body={nome:$('customer-name').value,telefone:$('customer-phone').value,email:$('customer-email').value||null,notas:$('customer-notes').value||null,campos_extras:extraFieldValues('customer')};try{await api(editingCustomer?`/api/pacientes/${editingCustomer}`:'/api/pacientes',{method:editingCustomer?'PUT':'POST',body:JSON.stringify(body)});resetCustomer();await loadCustomers();notice('Cliente salvo');}catch(error){notice(error.message);}};
+$('customer-cancel').onclick=resetCustomer;
+$('professional-form').onsubmit=async e=>{e.preventDefault();const current=professionalCache.find(p=>p.id===editingProfessional);const body={nome:$('professional-name').value,telefone:$('professional-phone').value||null,email:$('professional-email').value||null,especialidade:current?.especialidade||null,cor:current?.cor||'#E8B4B8',ativo:$('professional-active').checked};if(current?.comissao_percentual!==undefined)body.comissao_percentual=current.comissao_percentual;const selected=Array.from($('professional-services').selectedOptions,item=>item.value);try{const saved=await api(editingProfessional?`/api/profissionais/${editingProfessional}`:'/api/profissionais',{method:editingProfessional?'PUT':'POST',body:JSON.stringify(body)});await api(`/api/agenda/profissionais/${saved.id}/servicos`,{method:'PUT',body:JSON.stringify({procedimento_ids:selected})});resetProfessional();await loadProfessionals();notice('Profissional salvo');}catch(error){notice(error.message);}};
+$('professional-cancel').onclick=resetProfessional;
+$('agenda-refresh').onclick=()=>refreshAgenda().catch(error=>notice(error.message));
+$('agenda-date').onchange=()=>refreshAgenda().catch(error=>notice(error.message));
+$('agenda-view').onchange=()=>refreshAgenda().catch(error=>notice(error.message));
+$('appointment-form').onsubmit=async e=>{e.preventDefault();const body=editingAppointment?{data_hora:$('appointment-date').value,procedimento_id:$('appointment-service').value,profissional_id:$('appointment-professional').value||null}:{paciente_id:$('appointment-customer').value,procedimento_id:$('appointment-service').value,data_hora:$('appointment-date').value,profissional_id:$('appointment-professional').value||null,origem:'PANEL'};body.campos_extras=extraFieldValues('appointment');if(segmentConfig?.modules.includes('vehicles'))body.veiculo_id=$('appointment-vehicle').value||null;if(segmentConfig?.modules.includes('pets'))body.pet_id=$('appointment-pet').value||null;try{await api(editingAppointment?`/api/agendamentos/${editingAppointment}`:'/api/agendamentos',{method:editingAppointment?'PUT':'POST',body:JSON.stringify(body)});resetAppointment();await refreshAgenda();notice('Agendamento salvo');}catch(error){notice(error.message);}};
+$('appointment-cancel-edit').onclick=resetAppointment;
+$('block-form').onsubmit=async e=>{e.preventDefault();const body={inicio:$('block-start').value,fim:$('block-end').value,motivo:$('block-reason').value,profissional_id:$('block-professional').value||null};try{await api('/api/bloqueios',{method:'POST',body:JSON.stringify(body)});$('block-form').reset();await refreshAgenda();notice('Período bloqueado');}catch(error){notice(error.message);}};
+$('takeover').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/assumir`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);}catch(e){notice(e.message);}};
+$('return-ai').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/devolver`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);}catch(e){notice(e.message);}};
+$('reply-form').onsubmit=async e=>{e.preventDefault();if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/responder`,{method:'POST',body:JSON.stringify({texto:$('reply').value})});$('reply').value='';await openConversation(selectedConversation,$('conversation-title').textContent);notice('Mensagem enviada');}catch(err){notice(err.message);}};
+$('connect').onclick=async()=>{try{const c=await api('/api/whatsapp/conectar',{method:'POST'});if(c.qrcode_base64){$('qr').src=c.qrcode_base64.startsWith('data:')?c.qrcode_base64:`data:image/png;base64,${c.qrcode_base64}`;$('qr').classList.remove('hidden');$('whatsapp-status').textContent='AGUARDANDO_QR';}else{notice('Instância conectada ou QR indisponível');} }catch(e){notice(e.message);}};
+$('disconnect').onclick=async()=>{try{await api('/api/whatsapp/desconectar',{method:'POST'});$('qr').classList.add('hidden');await loadWhatsapp();}catch(e){notice(e.message);}};
+$('reconnect').onclick=async()=>{try{await api('/api/whatsapp/reconectar',{method:'POST'});$('whatsapp-status').textContent='CONECTANDO';notice('Reconexão iniciada');}catch(e){notice(e.message);}};
+$('refresh-status').onclick=()=>loadWhatsapp().catch(e=>notice(e.message));
+$('today').textContent=new Date().toLocaleDateString('pt-BR',{dateStyle:'full'});
+loadSegmentConfig().then(()=>showTab('overview')).catch(error=>notice(error.message));
+</script>
+</body>
+</html>
