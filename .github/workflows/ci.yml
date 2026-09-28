@@ -2,14 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
-    branches: [master, main]
+    branches: [main]
 
 jobs:
   test:
     name: Lint & Test
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: recepia
 
     steps:
       - uses: actions/checkout@v4
@@ -19,8 +23,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: recepia/requirements.txt
 
-      # WeasyPrint (PDF generation) needs Pango/Cairo system libraries.
       - name: Install system dependencies (WeasyPrint)
         run: |
           sudo apt-get update
