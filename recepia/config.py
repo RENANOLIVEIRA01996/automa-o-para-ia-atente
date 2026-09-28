@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     AI_PROVIDER: str = "auto"
     SAAS_LIMITS_ENABLED: bool = False
+    FILE_UPLOADS_ENABLED: bool = True
     RUN_DB_MIGRATIONS_ON_STARTUP: bool = True
 
     # Operação

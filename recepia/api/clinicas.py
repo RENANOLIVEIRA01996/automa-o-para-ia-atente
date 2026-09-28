@@ -1092,6 +1092,8 @@ async def upload_logo_clinica(
 ):
     """Upload do logo da clínica (usado em cabeçalhos de PDF). Só admin."""
     _exigir_admin_clinica(usuario)
+    if not settings.FILE_UPLOADS_ENABLED:
+        raise HTTPException(503, "Uploads desativados sem armazenamento persistente")
 
     # Early-abort: lê em chunks pra não estourar memória se enviarem arquivo gigante
     raw = bytearray()

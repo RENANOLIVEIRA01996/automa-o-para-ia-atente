@@ -33,6 +33,7 @@ from core.foto_storage import (
     salvar as fs_salvar,
 )
 from core.planos import FEATURE_PRONTUARIO, requer_feature
+from config import settings
 from database import get_db_dependency
 from models import AcaoAudit, Clinica, Prontuario
 
@@ -86,6 +87,8 @@ async def upload(
     ctx: dict = Depends(audit_context),
     db: Session = Depends(get_db_dependency),
 ):
+    if not settings.FILE_UPLOADS_ENABLED:
+        raise HTTPException(503, "Uploads desativados sem armazenamento persistente")
     if tipo is not None and tipo not in TIPOS_VALIDOS:
         raise HTTPException(422, f"tipo deve ser um de {sorted(TIPOS_VALIDOS)}")
 

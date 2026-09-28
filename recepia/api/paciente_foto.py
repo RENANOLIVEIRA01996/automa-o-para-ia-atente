@@ -11,6 +11,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from core.limiter import limiter
+from config import settings
 
 from core import audit
 from core.deps import audit_context, clinica_atual, requer_clinica_ativa
@@ -48,6 +49,8 @@ async def upload_foto(
     ctx: dict = Depends(audit_context),
     db: Session = Depends(get_db_dependency),
 ):
+    if not settings.FILE_UPLOADS_ENABLED:
+        raise HTTPException(503, "Uploads desativados sem armazenamento persistente")
     raw = await arquivo.read(MAX_UPLOAD_BYTES + 1)
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, f"Arquivo maior que {MAX_UPLOAD_BYTES // (1024*1024)}MB")

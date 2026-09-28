@@ -25,6 +25,11 @@ def conectar(
     """Cria instância no Evolution, configura webhook automático (G5), retorna QR Code."""
     if not settings.DEBUG and not settings.PUBLIC_WEBHOOK_URL:
         raise HTTPException(503, "PUBLIC_WEBHOOK_URL não configurada")
+    if not settings.DEBUG and (
+        not settings.evolution_base_url
+        or settings.evolution_base_url.startswith(("http://localhost", "http://127.0.0.1"))
+    ):
+        raise HTTPException(503, "Configure uma Evolution externa em EVOLUTION_API_URL para conectar o WhatsApp")
     if not settings.DEBUG and settings.AI_PROVIDER == "openrouter" and not settings.openrouter_enabled:
         raise HTTPException(503, "Configure OPENROUTER_API_KEY e OPENROUTER_MODEL antes de conectar o WhatsApp")
     if not settings.DEBUG and not settings.EVOLUTION_API_KEY:
