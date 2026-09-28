@@ -34,7 +34,7 @@ Preencha no fluxo inicial os campos `sync: false` abaixo, sem colocar valores no
 | API | `DATABASE_URL` | URL do banco Recepia no Neon |
 | API | `JWT_SECRET`, `ADMIN_API_KEY` | Segredos fortes; preserve os atuais se quiser manter as credenciais/tokens existentes |
 | API | `EVOLUTION_WEBHOOK_SECRET` | Segredo forte para `X-Webhook-Token`; mantenha o mesmo valor ao migrar webhooks existentes |
-| API | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | Chave e modelo com suporte a ferramentas na conta OpenRouter |
+| API | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | Chave e modelo com suporte a ferramentas na conta OpenRouter; exemplo de modelo: `openai/gpt-4.1-mini` |
 | API | `ALLOWED_ORIGINS` | Origens HTTPS exatas das páginas que acessam a API de outro domínio, separadas por vírgula; por exemplo `https://recepia.app.br,https://app.recepia.app.br` se forem seus frontends |
 | Evolution | `AUTHENTICATION_API_KEY` | Chave forte da Evolution; preserve a atual se estiver migrando instâncias |
 | Evolution | `DATABASE_CONNECTION_URI` | URL Neon do banco **separado** da Evolution |
@@ -44,6 +44,16 @@ O Blueprint encaminha automaticamente a chave da Evolution para a API/worker e c
 Variáveis com `sync: false` são solicitadas somente na **criação inicial** do Blueprint. Se adicionar ou mudar uma depois, edite as variáveis do serviço no painel do Render; veja a [referência do Blueprint](https://render.com/docs/blueprint-spec). Não use `*` em `ALLOWED_ORIGINS` em produção. Se vincular domínio próprio à API, atualize `PUBLIC_WEBHOOK_URL`, `APP_URL` e `ALLOWED_ORIGINS` no painel e execute a sincronização dos webhooks; o valor automático do Blueprint continua apontando para `onrender.com` até você trocar a referência no arquivo.
 
 O nome do campo de chave da Evolution no painel é `AUTHENTICATION_API_KEY`; o Blueprint o entrega à API como `EVOLUTION_API_KEY`. O segredo de webhook é outro valor, independente. A chave OpenRouter fica **somente na API**. Não copie nenhuma dessas chaves para arquivos HTML, JavaScript ou para o repositório.
+
+Se estiver criando uma instalação nova, gere valores diferentes para `JWT_SECRET`, `ADMIN_API_KEY`, `EVOLUTION_WEBHOOK_SECRET` e `AUTHENTICATION_API_KEY`. No PowerShell do Windows, execute uma vez para **cada** segredo (o resultado deve ter 64 caracteres hexadecimais):
+
+```powershell
+$bytes = [byte[]]::new(32)
+[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[Convert]::ToHexString($bytes).ToLowerInvariant()
+```
+
+Copie cada resultado diretamente para o campo correspondente do Render, sem enviá-lo por chat. Se está migrando a instalação atual, prefira os valores atuais dos segredos para manter a compatibilidade. O identificador `openai/gpt-4.1-mini` é um exemplo documentado pela [página do modelo no OpenRouter](https://openrouter.ai/openai/gpt-4.1-mini); confirme disponibilidade e custo na sua conta antes de escolher.
 
 ## Primeiro deploy e checagens
 
