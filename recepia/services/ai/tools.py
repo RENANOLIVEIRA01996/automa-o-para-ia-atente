@@ -1,6 +1,7 @@
 """Ferramentas do agente com tenant e cliente vindos do webhook."""
 
 import json
+import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
@@ -10,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.vehicles import normalize_plate
+from core.phones import tenta_normalizar
 from models import (
     Agendamento,
     Clinica,
@@ -28,6 +30,8 @@ from models import (
 from services.availability import bloquear_agenda_tenant, ha_conflito, slots_disponiveis
 from services.hotel import reservation_conflict
 
+log = logging.getLogger("recepia.ai.tools")
+
 
 @dataclass
 class ToolContext:
@@ -39,6 +43,10 @@ class ToolContext:
 
 class Empty(BaseModel):
     pass
+
+
+class HumanSupportIn(BaseModel):
+    resumo: str | None = Field(None, max_length=300)
 
 
 class ServiceId(BaseModel):
@@ -115,7 +123,7 @@ SCHEMAS: dict[str, tuple[type[BaseModel], str]] = {
     "createAppointment": (CreateIn, "Reserva um horário real para este cliente"),
     "rescheduleAppointment": (RescheduleIn, "Remarca um agendamento deste cliente"),
     "cancelAppointment": (AppointmentId, "Cancela um agendamento deste cliente"),
-    "requestHumanSupport": (Empty, "Transfere a conversa para atendimento humano"),
+    "requestHumanSupport": (HumanSupportIn, "Transfere a conversa para atendimento humano. Para vendas, informe um resumo breve do interesse."),
     "listCustomerVehicles": (Empty, "Lista os veículos cadastrados deste cliente"),
     "registerVehicle": (RegisterVehicleIn, "Cadastra o veículo deste cliente pela placa"),
     "listCustomerPets": (Empty, "Lista pets deste tutor"),
@@ -147,6 +155,7 @@ def tool_definitions(business_type: str | None = None) -> list[dict]:
         and (name not in pet_tools or business_type == "PET")
         and (name not in hotel_tools or business_type == "HOTEL")
         and (name not in appointment_tools or business_type != "HOTEL")
+        and (business_type != "RECEPIA" or name in {"getBusinessInfo", "requestHumanSupport"})
     ]
 
 
@@ -554,6 +563,34 @@ def execute_tool(name: str, raw_arguments: str, ctx: ToolContext) -> dict:
         item.status = Status.CANCELADO
         db.commit()
         return {"success": True, "appointment": _appointment_data(item)}
+    if ctx.conversa.atendimento_humano:
+        return {"success": True, "human_takeover": True, "already_human": True}
     ctx.conversa.atendimento_humano = True
     db.commit()
-    return {"success": True, "human_takeover": True}
+    if tenant.tipo_negocio != "RECEPIA":
+        return {"success": True, "human_takeover": True}
+
+    config = db.query(ConfiguracaoNegocio).filter(ConfiguracaoNegocio.clinica_id == tenant.id).first()
+    destino = tenta_normalizar(config.telefone_suporte_humano) if config and config.telefone_suporte_humano else None
+    origem = tenta_normalizar(ctx.paciente.telefone)
+    if not destino or destino == origem or not tenant.evolution_instance_name:
+        return {"success": True, "human_takeover": True, "owner_notified": False}
+
+    from services.whatsapp import WhatsAppService
+    resumo = (args.resumo or "Interessado pediu atendimento humano.").strip().replace("\n", " ")[:300]
+    aviso = (
+        "Novo interessado em contratar o Recepia.\n"
+        f"Nome: {ctx.paciente.nome[:120]}\n"
+        f"WhatsApp: +{origem or ctx.paciente.telefone}\n"
+        f"Resumo: {resumo}\n"
+        "A conversa está no painel em Conversas, marcada para atendimento humano."
+    )
+    try:
+        enviado = WhatsAppService().enviar_mensagem(tenant.evolution_instance_name, destino, aviso)
+        notified = bool(enviado.get("success"))
+    except Exception:
+        log.exception("Aviso comercial falhou: tenant=%s", tenant.id)
+        notified = False
+    if not notified:
+        log.error("Aviso comercial não confirmado: tenant=%s", tenant.id)
+    return {"success": True, "human_takeover": True, "owner_notified": notified}

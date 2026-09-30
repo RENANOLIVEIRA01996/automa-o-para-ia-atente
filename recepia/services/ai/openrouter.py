@@ -26,6 +26,10 @@ class _TransientError(Exception):
         super().__init__(code)
 
 
+class _DailyQuotaError(_TransientError):
+    """O limite diário da conta vale para todos os modelos gratuitos."""
+
+
 class OpenRouterProvider:
     def __init__(
         self,
@@ -36,6 +40,7 @@ class OpenRouterProvider:
         model: str | None = None,
         fallback_model: str | None = None,
         base_url: str | None = None,
+        provider_name: str = "openrouter",
     ):
         self.db = db
         self.client = client or httpx.Client(timeout=20.0)
@@ -47,6 +52,7 @@ class OpenRouterProvider:
             else fallback_model
         )
         self.base_url = (base_url or settings.OPENROUTER_BASE_URL).rstrip("/")
+        self.provider_name = provider_name
 
     def supports_tools(self) -> bool:
         return True
@@ -78,7 +84,7 @@ class OpenRouterProvider:
         self.db.add(
             AIUsage(
                 clinica_id=tenant_id,
-                provider="openrouter",
+                provider=self.provider_name,
                 model=model,
                 input_tokens=usage.get("prompt_tokens") or 0,
                 output_tokens=usage.get("completion_tokens") or 0,
@@ -108,10 +114,20 @@ class OpenRouterProvider:
             )
         except (httpx.TimeoutException, httpx.NetworkError) as exc:
             raise _TransientError(type(exc).__name__) from exc
-        if response.status_code == 429 or response.status_code >= 500:
+        if response.status_code == 429:
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+            error = payload.get("error") if isinstance(payload, dict) else {}
+            message = str(error.get("message") or "") if isinstance(error, dict) else ""
+            if self.provider_name == "openrouter" and "free-models-per-day" in message:
+                raise _DailyQuotaError("429")
+            raise _TransientError("429")
+        if response.status_code >= 500:
             raise _TransientError(str(response.status_code))
         if response.status_code >= 400:
-            raise AIRequestError(f"OpenRouter HTTP {response.status_code}")
+            raise AIRequestError(f"{self.provider_name} HTTP {response.status_code}")
         try:
             payload = response.json()
             message = payload["choices"][0]["message"]
@@ -119,13 +135,13 @@ class OpenRouterProvider:
                 raise TypeError("message inválida")
             return message, payload.get("usage") or {}
         except (ValueError, KeyError, IndexError, TypeError) as exc:
-            raise AIRequestError("Resposta inválida do OpenRouter") from exc
+            raise AIRequestError(f"Resposta inválida do {self.provider_name}") from exc
 
     def _call(
         self, messages: list[dict], tools: list[dict] | None, tenant_id: str | None
     ) -> dict:
         if not self.api_key or not self.model:
-            raise AIUnavailable("OpenRouter não configurado")
+            raise AIUnavailable(f"{self.provider_name} não configurado")
         models = [self.model]
         if self.fallback_model and self.fallback_model != self.model:
             models.append(self.fallback_model)
@@ -134,22 +150,31 @@ class OpenRouterProvider:
                 started = time.monotonic()
                 try:
                     message, usage = self._request(model, messages, tools)
+                except _DailyQuotaError as exc:
+                    latency = int((time.monotonic() - started) * 1000)
+                    self._record(tenant_id, model, latency, False, exc.code, index > 0)
+                    log.warning(
+                        "Limite diário OpenRouter atingido: model=%s code=%s",
+                        model, exc.code,
+                    )
+                    raise AIUnavailable("Limite diário OpenRouter atingido") from exc
                 except _TransientError as exc:
                     latency = int((time.monotonic() - started) * 1000)
                     self._record(tenant_id, model, latency, False, exc.code, index > 0)
                     log.warning(
-                        "Falha temporária de IA: model=%s code=%s", model, exc.code
+                        "Falha temporária de IA: provider=%s model=%s code=%s",
+                        self.provider_name, model, exc.code,
                     )
                     if attempt == 0:
                         continue
                     break
-                except AIRequestError as exc:
+                except AIRequestError:
                     latency = int((time.monotonic() - started) * 1000)
                     self._record(
                         tenant_id, model, latency, False, "invalid_request", index > 0
                     )
-                    raise exc
+                    raise
                 latency = int((time.monotonic() - started) * 1000)
                 self._record(tenant_id, model, latency, True, None, index > 0, usage)
                 return message
-        raise AIUnavailable("OpenRouter temporariamente indisponível")
+        raise AIUnavailable(f"{self.provider_name} temporariamente indisponível")

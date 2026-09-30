@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="recepia-legacy">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -348,13 +348,14 @@
       html.dark .bg-amber-50 { background-color: rgba(251,191,36,0.12) !important; }
       html.dark .bg-amber-100 { background-color: rgba(251,191,36,0.16) !important; }
     </style>
+    <link rel="stylesheet" href="/recepia.theme.css?v=graphite-1">
     <script>
       /* Aplica o tema o mais cedo possível (antes do body pintar) pra evitar flash.
          localStorage 'recepia-theme' tem prioridade; senão segue a preferência do SO. */
       (function () {
         try {
           var t = localStorage.getItem('recepia-theme');
-          var dark = t === 'dark' || (t == null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var dark = t !== 'light';
           if (dark) document.documentElement.classList.add('dark');
         } catch (_) { /* tema nunca deve derrubar a UI */ }
       })();
@@ -447,7 +448,7 @@
       <button onclick="showTab('configuracoes')" data-tab="configuracoes" role="tab" aria-controls="tab-configuracoes" class="tab-link w-full text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3"><i data-lucide="message-square"></i> Mensagens</button>
       <button onclick="showTab('horarios')" data-tab="horarios" role="tab" aria-controls="tab-horarios" class="tab-link w-full text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3"><i data-lucide="clock"></i> Horários</button>
       <button onclick="showTab('whatsapp')" data-tab="whatsapp" role="tab" aria-controls="tab-whatsapp" class="tab-link w-full text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3"><i data-lucide="message-circle"></i> WhatsApp</button>
-      <a href="/dashboard/saas.html" class="tab-link w-full text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3"><i data-lucide="briefcase-business"></i> Empresa e conversas</a>
+      <a href="/dashboard/saas.html?v=clientes-20260929-1" class="tab-link w-full text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3"><i data-lucide="briefcase-business"></i> Empresa e conversas</a>
     </nav>
     <div class="border-t border-white/10 pt-3 mt-3">
       <button id="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Alternar tema claro/escuro" class="w-full text-left px-4 py-2.5 mb-1 rounded-xl text-xs text-white/70 hover:text-white hover:bg-white/5 transition flex items-center gap-2">
@@ -980,18 +981,18 @@ async function init() {
   // O painel SaaS é o núcleo compartilhado. O painel clínico permanece
   // acessível por ?legacy=1 para prontuários e outros recursos históricos.
   if (token && !_sp.has('legacy')) {
-    location.replace('/dashboard/saas.html');
+    location.replace('/dashboard/saas.html?v=clientes-20260929-1');
     return;
   }
   if (token && _sp.has('legacy')) {
     try {
       const segment = await api('/api/negocio/segmento');
       if (!['CLINIC', 'DENTAL'].includes(segment.business_type)) {
-        location.replace('/dashboard/saas.html');
+        location.replace('/dashboard/saas.html?v=clientes-20260929-1');
         return;
       }
     } catch (_) {
-      location.replace('/dashboard/saas.html');
+      location.replace('/dashboard/saas.html?v=clientes-20260929-1');
       return;
     }
   }

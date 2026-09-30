@@ -1,32 +1,50 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="recepia-saas">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#141210">
   <title>Recepia · Gestão da empresa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <style>
-    :root { font-family: Inter, system-ui, sans-serif; color: #17212c; background: #f4f7f7; --accent: #176c69; }
+    :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17212c; background: #f3f6f5; --accent: #176c69; --ink: #132d32; --line: #dce7e4; }
     * { box-sizing: border-box; }
     body { margin: 0; }
-    .layout { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0,1fr); }
-    aside { background: #102b31; color: #fff; padding: 26px 16px; }
-    .brand { font-size: 24px; font-weight: 800; letter-spacing: -.05em; padding: 0 12px 22px; }
-    .brand small { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0; color: #b3d0d2; margin-top: 5px; }
-    nav { display: grid; gap: 6px; }
-    nav button, nav a { appearance: none; border: 0; width: 100%; text-decoration: none; text-align: left; background: transparent; color: #d5e6e6; padding: 12px 14px; border-radius: 10px; font: inherit; cursor: pointer; display:flex; align-items:center; gap:10px; }
-    nav svg { width: 18px; height: 18px; flex: none; }
+    .layout { min-height: 100vh; display: grid; grid-template-columns: 256px minmax(0,1fr); }
+    .sidebar { position: sticky; top: 0; height: 100vh; min-height: 0; display: flex; flex-direction: column; background: #102c31; color: #fff; padding: 28px 14px 16px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #426268 transparent; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 12px 26px; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 11px; background: #d9f3eb; color: #0b625f; font-weight: 900; font-size: 22px; letter-spacing: -.09em; }
+    .brand-word { display: block; font-size: 23px; line-height: 1; font-weight: 800; letter-spacing: -.055em; }
+    .brand small { display: block; font-size: 11px; font-weight: 500; letter-spacing: .01em; color: #adcccb; margin-top: 6px; }
+    .workspace-card { margin: 0 7px 23px; padding: 13px 14px; border: 1px solid #37555a; border-radius: 13px; background: #193a3f; }
+    .workspace-card span { display: block; color: #a9c4c5; font-size: 10px; text-transform: uppercase; letter-spacing: .11em; font-weight: 700; margin-bottom: 6px; }
+    .workspace-card strong { display: block; font-size: 13px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    nav { display: grid; gap: 2px; align-content: start; }
+    .nav-group-label { margin: 19px 14px 7px; color: #86a8aa; text-transform: uppercase; font-size: 10px; letter-spacing: .13em; font-weight: 750; }
+    .nav-group-label:first-child { margin-top: 0; }
+    nav button, nav a { position: relative; appearance: none; border: 0; width: 100%; text-decoration: none; text-align: left; background: transparent; color: #cbdedc; padding: 11px 13px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 540; cursor: pointer; display:flex; align-items:center; gap:12px; transition: background .16s, color .16s; }
+    nav svg { width: 17px; height: 17px; flex: none; stroke-width: 1.9; }
     nav button:focus-visible, nav a:focus-visible { outline: 2px solid #89e4d9; outline-offset: 2px; }
-    nav button.active, nav button:hover, nav a:hover { background: #26515a; color: #fff; }
-    nav button:disabled { opacity:.48; cursor:not-allowed; }
-    nav button:disabled:hover { background:transparent; color:#d5e6e6; }
-    main { padding: 30px clamp(16px,4vw,52px); max-width: 1400px; width: 100%; }
-    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    nav button.active { background: #245459; color: white; font-weight: 700; }
+    nav button.active::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: #7ae0c7; }
+    nav button:hover:not(:disabled), nav a:hover { background: #21464b; color: #fff; }
+    nav button:disabled { opacity:.45; cursor:not-allowed; }
+    .sidebar-footer { margin-top: auto; padding: 20px 10px 0; color: #8aafb0; font-size: 11px; }
+    .sidebar-footer span { display: block; border-top: 1px solid #325258; padding: 15px 3px 0; }
+    main { min-width: 0; padding: 31px clamp(20px,3vw,48px) 54px; width: 100%; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 27px; }
+    .page-heading { min-width: 0; }
+    .page-eyebrow { display: block; margin-bottom: 7px; color: #628281; font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .mobile-menu-button { display: none; font-size: 20px; line-height: 1; }
+    #today { font-size: 12px; white-space: nowrap; margin-top: 14px; }
     h1 { font-size: clamp(24px,3vw,34px); letter-spacing: -.045em; margin: 0; }
     h2 { font-size: 19px; margin: 0 0 16px; }
     p { line-height: 1.5; }
     .muted { color: #62757b; }
-    .panel { background: white; border: 1px solid #e1e9e8; border-radius: 16px; padding: 22px; box-shadow: 0 4px 22px #122d3210; margin-bottom: 18px; }
+    .panel { background: white; border: 1px solid var(--line); border-radius: 17px; padding: 22px; box-shadow: 0 7px 24px #122d320a; margin-bottom: 18px; min-width: 0; }
     .metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 12px; }
     .metric strong { display: block; font-size: clamp(21px,2.5vw,30px); margin-top: 10px; overflow-wrap:anywhere; }
     .metric span { font-size: 13px; color: #5e7277; }
@@ -37,16 +55,55 @@
     textarea { min-height: 90px; resize: vertical; }
     button.primary, button.secondary, button.danger { border: 0; border-radius: 9px; padding: 11px 16px; font: inherit; font-weight: 650; cursor: pointer; }
     button.primary { background: var(--accent); color: white; }
+    button.primary:hover { filter: brightness(.9); }
     button.secondary { background: #e5f0ee; color: #174e4e; }
     button.danger { background: #fce9e8; color: #9a2727; }
     button:disabled { opacity: .5; cursor: wait; }
     .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0; border-top: 1px solid #e7eeed; }
     .row:first-child { border-top: 0; }
     .row button { flex: none; }
-    .service-table { width:100%; border-collapse:collapse; }
-    .service-table th, .service-table td { padding:12px 10px; border-bottom:1px solid #e7eeed; text-align:left; }
-    .service-table th { color:#62757b; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
-    .service-table .stack { flex-wrap:nowrap; }
+    .services-intro { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 1px 1px 18px; }
+    .services-intro p { margin: 0; color: #62757b; font-size: 13px; }
+    .service-count { display: inline-flex; align-items: center; gap: 8px; background: #e8f3ef; color: #145c57; border-radius: 999px; padding: 9px 13px; font-size: 12px; font-weight: 700; }
+    .service-count::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #35ad89; }
+    .services-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); gap: 19px; align-items: start; }
+    .services-list-panel, .service-form-panel { padding: 0; overflow: hidden; }
+    .service-panel-head { padding: 22px 23px 17px; border-bottom: 1px solid #e8efed; }
+    .service-panel-head h2 { margin: 0 0 5px; }
+    .service-panel-head p { margin: 0; font-size: 12px; color: #6d7f82; }
+    .service-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 23px; border-bottom: 1px solid #e8efed; }
+    .service-search { position: relative; width: min(100%,260px); }
+    .service-search svg { width: 16px; height: 16px; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #718b8a; pointer-events: none; }
+    .service-search input { padding: 9px 12px 9px 35px; font-size: 13px; background: #f8faf9; }
+    .service-filters { display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 3px; background: #edf2f0; border-radius: 10px; }
+    .service-filters button { border: 0; border-radius: 8px; padding: 8px 11px; background: transparent; color: #5d7375; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+    .service-filters button.active { background: #fff; color: #164e50; box-shadow: 0 1px 5px #14383a18; }
+    .service-filters button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    #services-list { padding: 2px 23px 8px; }
+    .service-item { padding: 19px 0; border-bottom: 1px solid #e9efed; }
+    .service-item:last-child { border-bottom: 0; }
+    .service-item-main { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .service-item h3 { font-size: 15px; letter-spacing: -.015em; margin: 0 0 5px; overflow-wrap: anywhere; }
+    .service-item p { margin: 0; color: #6b7c80; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+    .service-status { flex: none; display: inline-flex; align-items: center; gap: 6px; background: #e7f5ef; color: #18684f; padding: 6px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .service-status::before { content: ''; width: 6px; height: 6px; background: #33ac7b; border-radius: 50%; }
+    .service-status.inactive { background: #eef0ef; color: #687777; }
+    .service-status.inactive::before { background: #92a19f; }
+    .service-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .service-meta span { background: #f2f6f4; color: #435c5e; font-size: 12px; border-radius: 7px; padding: 6px 9px; font-weight: 600; }
+    .service-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+    .service-actions button { padding: 7px 11px; font-size: 12px; border-radius: 8px; }
+    .service-actions .danger { background: transparent; }
+    .service-actions .danger:hover { background: #fce9e8; }
+    .service-empty { text-align: center; padding: 47px 18px; color: #617477; }
+    .service-empty-icon { display: grid; place-items: center; width: 46px; height: 46px; margin: 0 auto 12px; background: #eaf3f0; color: #19736d; border-radius: 14px; }
+    .service-empty-icon svg { width: 23px; height: 23px; }
+    .service-empty strong { display: block; color: #18363a; font-size: 14px; }
+    .service-empty p { margin: 6px 0 0; font-size: 12px; }
+    .service-form-body { padding: 21px 23px 23px; }
+    .service-form-body .field:last-of-type { margin-bottom: 18px; }
+    .service-form-body .grid { gap: 12px; }
+    .service-form-body .stack button { flex: 1 1 auto; }
     dialog { border:0; border-radius:16px; padding:24px; width:min(420px,calc(100vw - 32px)); box-shadow:0 20px 80px #102b3150; }
     dialog::backdrop { background:#102b3180; }
     .drawer-backdrop { position:fixed; inset:0; background:#102b3180; z-index:20; }
@@ -66,17 +123,22 @@
     [hidden] { display: none !important; }
     #notice { position: fixed; bottom: 18px; right: 18px; z-index: 10; padding: 12px 18px; background: #102b31; color: white; border-radius: 10px; max-width: 360px; box-shadow: 0 8px 30px #1237; }
     #qr { max-width: 270px; width: 100%; margin-top: 16px; border: 1px solid #ddd; border-radius: 12px; }
-    @media (max-width: 800px) { .layout { display: block; } aside { padding: 12px; } .brand { padding: 4px 8px 12px; font-size: 21px; } nav { display: flex; overflow-x: auto; } nav button, nav a { white-space: nowrap; width: auto; } main { padding: 20px 14px; } .grid { grid-template-columns: 1fr; } .service-table { min-width:600px; } #services-list { overflow-x:auto; } }
+    @media (max-width: 1100px) { .services-layout { grid-template-columns: minmax(0,1fr); } }
+    @media (max-width: 800px) { .layout { display: block; } .sidebar { position: fixed; z-index: 31; inset: 0 auto 0 0; width: min(290px,86vw); height: 100dvh; transform: translateX(-102%); transition: transform .2s; box-shadow: 14px 0 40px #122d3230; } body.menu-open .sidebar { transform: translateX(0); } .menu-backdrop { position: fixed; inset: 0; z-index: 30; background: #0b292ca8; } body.menu-open .menu-backdrop { display: block !important; } body.menu-open { overflow: hidden; } .mobile-menu-button { display: inline-grid; place-items: center; flex: none; width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #1a474a; cursor: pointer; } .mobile-menu-button svg { width: 19px; height: 19px; } main { padding: 19px 15px 40px; } header { align-items: flex-start; } .page-heading { margin-right: auto; } #today { display: none; } .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .panel { padding: 17px; } .services-list-panel, .service-form-panel { padding: 0; } .service-panel-head, .service-toolbar, .service-form-body { padding-left: 17px; padding-right: 17px; } #services-list { padding-left: 17px; padding-right: 17px; } .service-search { width: 100%; } .service-filters { width: 100%; } .service-filters button { flex: 1; } }
   </style>
+  <link rel="stylesheet" href="/recepia.theme.css?v=clientes-20260929-1">
 </head>
 <body>
 <div class="layout">
-  <aside>
-    <div class="brand">recepia <small id="company-name">Gestão da empresa</small></div>
+  <aside id="app-sidebar" class="sidebar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">r</span><div><span class="brand-word">recepia</span><small>Seu negócio em movimento</small></div></div>
+    <div class="workspace-card"><span>Área de trabalho</span><strong id="company-name">Gestão da empresa</strong></div>
     <nav id="main-nav" aria-label="Seções"></nav>
+    <div class="sidebar-footer"><span>Recepia · Gestão da empresa</span></div>
   </aside>
   <main>
-    <header><div><h1 id="page-title">Visão geral</h1><p id="page-subtitle" class="muted" style="margin:5px 0 0"></p></div><span id="today" class="muted"></span></header>
+    <header><button id="mobile-menu-button" class="mobile-menu-button" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="app-sidebar"><span aria-hidden="true">☰</span></button><div class="page-heading"><span class="page-eyebrow">Painel de gestão</span><h1 id="page-title">Visão geral</h1><p id="page-subtitle" class="muted" style="margin:5px 0 0"></p></div><span id="today" class="muted"></span></header>
     <section id="overview">
       <div id="metrics" class="metrics"></div>
       <div class="panel"><h2 id="onboarding-title">Primeiros passos</h2><p id="onboarding-hint" class="muted"></p><div id="onboarding-list"></div></div>
@@ -103,19 +165,47 @@
       </form>
       <div class="panel"><h2>Bloquear período</h2><form id="block-form" class="grid"><div class="field"><label for="block-start">Início</label><input id="block-start" type="datetime-local" required></div><div class="field"><label for="block-end">Fim</label><input id="block-end" type="datetime-local" required></div><div class="field"><label for="block-reason">Motivo</label><input id="block-reason" maxlength="120" value="Bloqueio"></div><div class="field"><label for="block-professional">Profissional (opcional)</label><select id="block-professional"></select></div><button class="secondary">Criar bloqueio</button></form><div id="block-list"></div></div>
     </section>
-    <section id="customers" class="hidden"><div class="grid"><div class="panel"><h2 id="customers-heading">Clientes</h2><div id="customers-list"></div></div><form id="customer-form" class="panel"><h2 id="customer-form-title">Novo cliente</h2><div class="field"><label for="customer-name">Nome</label><input id="customer-name" required></div><div class="field"><label for="customer-phone">WhatsApp</label><input id="customer-phone" required></div><div class="field"><label for="customer-email">Email</label><input id="customer-email" type="email"></div><div class="field"><label for="customer-notes">Observações</label><textarea id="customer-notes"></textarea></div><div id="customer-extra-fields"></div><div class="stack"><button class="primary">Salvar cliente</button><button id="customer-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div><div id="customer-profile" class="panel hidden"><h2 id="customer-profile-title">Histórico</h2><div id="customer-profile-content"></div></div></section>
+    <section id="customers" class="hidden">
+      <div class="customer-intro">
+        <div><span class="customer-eyebrow">Relacionamento</span><h2 id="customers-heading">Sua carteira de clientes</h2><p>Todos os contatos, atendimentos e detalhes em um só lugar.</p></div>
+        <span id="customer-count" class="customer-count" aria-live="polite">Carregando clientes</span>
+      </div>
+      <div class="customer-layout">
+        <div class="panel customer-list-panel">
+          <div class="customer-panel-head"><div><span class="customer-section-label">CARTEIRA DE CLIENTES</span><h3>Seus contatos</h3></div><span class="customer-head-icon" aria-hidden="true">✦</span></div>
+          <div class="customer-toolbar"><label for="customer-search">Buscar cliente</label><div class="customer-search-wrap"><span aria-hidden="true">⌕</span><input id="customer-search" type="search" placeholder="Nome, WhatsApp ou e-mail" autocomplete="off"></div></div>
+          <div id="customers-list" class="customer-list" aria-live="polite"></div>
+        </div>
+        <form id="customer-form" class="panel customer-form-panel">
+          <div class="customer-panel-head"><div><span class="customer-section-label">CADASTRO</span><h3 id="customer-form-title">Novo cliente</h3></div><span class="customer-head-icon" aria-hidden="true">＋</span></div>
+          <div class="customer-form-body">
+            <p class="customer-form-intro">Registre as informações essenciais para oferecer um atendimento mais pessoal.</p>
+            <div class="customer-form-group"><span class="customer-form-group-title">01 <strong>Identificação</strong></span><div class="field"><label for="customer-name">Nome completo <span aria-hidden="true">*</span></label><input id="customer-name" placeholder="Como o cliente prefere ser chamado" autocomplete="name" required></div></div>
+            <div class="customer-form-group"><span class="customer-form-group-title">02 <strong>Contato</strong></span><div class="field"><label for="customer-phone">WhatsApp <span aria-hidden="true">*</span></label><input id="customer-phone" type="tel" placeholder="DDD + número" autocomplete="tel" required></div><div class="field"><label for="customer-email">E-mail <small>opcional</small></label><input id="customer-email" type="email" placeholder="cliente@exemplo.com" autocomplete="email"></div></div>
+            <div class="customer-form-group"><span class="customer-form-group-title">03 <strong>Preferências e detalhes</strong></span><div class="field"><label for="customer-notes">Observações <small>opcional</small></label><textarea id="customer-notes" placeholder="Preferências, contexto ou informações úteis para a equipe"></textarea></div><div id="customer-extra-fields"></div></div>
+            <div class="customer-form-actions"><button id="customer-submit" class="primary" type="submit">Salvar cliente</button><button id="customer-cancel" type="button" class="secondary hidden">Cancelar edição</button></div>
+          </div>
+        </form>
+      </div>
+      <div id="customer-profile" class="panel customer-profile-panel hidden"><div class="customer-profile-head"><div><span class="customer-section-label">RELACIONAMENTO</span><h2 id="customer-profile-title">Histórico</h2></div><button id="customer-profile-close" type="button" class="secondary" aria-label="Fechar histórico">Fechar</button></div><div id="customer-profile-content"></div></div>
+    </section>
     <section id="professionals" class="hidden"><div class="grid"><div class="panel"><h2 id="professionals-heading">Profissionais</h2><div id="professionals-list"></div></div><form id="professional-form" class="panel"><h2 id="professional-form-title">Novo profissional</h2><div class="field"><label for="professional-name">Nome</label><input id="professional-name" required></div><div class="field"><label for="professional-phone">Telefone</label><input id="professional-phone"></div><div class="field"><label for="professional-email">Email</label><input id="professional-email" type="email"></div><div class="field"><label id="professional-services-label" for="professional-services">Serviços atendidos (sem seleção = todos)</label><select id="professional-services" multiple size="5"></select></div><div class="field"><label><input id="professional-active" type="checkbox" checked style="width:auto"> Ativo</label></div><div class="stack"><button class="primary">Salvar profissional</button><button id="professional-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></form></div><div id="professional-hours-panel" class="panel hidden"><h2>Jornada do profissional</h2><p id="professional-hours-name" class="muted"></p><div id="professional-hours-list"></div></div></section>
     <section id="hours" class="hidden"><div class="panel"><h2>Horários de funcionamento</h2><div id="hours-list"></div></div></section>
     <section id="services" class="hidden">
-      <div class="grid">
-        <div class="panel"><h2 id="services-heading">Serviços cadastrados</h2><div id="services-list"></div></div>
-        <form id="service-form" class="panel"><h2 id="service-form-title">Novo serviço</h2>
+      <div class="services-intro"><p>Organize o catálogo oferecido aos seus clientes e mantenha os valores atualizados.</p><span id="service-active-count" class="service-count">Carregando serviços</span></div>
+      <div class="services-layout">
+        <div class="panel services-list-panel">
+          <div class="service-panel-head"><h2 id="services-heading">Serviços cadastrados</h2><p>Gerencie os serviços disponíveis para agendamento.</p></div>
+          <div class="service-toolbar"><label class="service-search" for="service-search"><i data-lucide="search" aria-hidden="true"></i><input id="service-search" type="search" placeholder="Buscar serviço" aria-label="Buscar serviço"></label><div id="service-filters" class="service-filters" role="group" aria-label="Filtrar serviços"><button type="button" data-filter="active" class="active" aria-pressed="true">Ativos</button><button type="button" data-filter="inactive" aria-pressed="false">Inativos</button><button type="button" data-filter="all" aria-pressed="false">Todos</button></div></div>
+          <div id="services-list"></div>
+        </div>
+        <form id="service-form" class="panel service-form-panel"><div class="service-panel-head"><h2 id="service-form-title">Novo serviço</h2><p>Informações que ajudam a equipe a atender com clareza.</p></div><div class="service-form-body">
           <div class="field"><label for="service-name">Nome</label><input id="service-name" required maxlength="120"></div>
           <div class="field"><label for="service-description">Descrição</label><textarea id="service-description" maxlength="5000"></textarea></div>
           <div class="field"><label for="service-price">Preço (R$)</label><input id="service-price" type="number" min="0" step="0.01"></div>
           <div class="grid"><div class="field"><label for="service-duration">Duração</label><input id="service-duration" type="number" min="5" max="480" step="1" value="30" required></div><div class="field"><label for="service-duration-unit">Unidade</label><select id="service-duration-unit"><option value="minutes">Minutos</option><option value="hours">Horas</option></select></div></div>
           <div class="field"><label><input id="service-active" type="checkbox" checked style="width:auto"> Ativo</label></div>
-          <div class="stack"><button class="primary">Salvar serviço</button><button id="service-cancel" type="button" class="secondary hidden">Cancelar edição</button></div>
+          <div class="stack"><button class="primary">Salvar serviço</button><button id="service-cancel" type="button" class="secondary hidden">Cancelar edição</button></div></div>
         </form>
       </div>
     </section>
@@ -167,6 +257,7 @@
     </section>
   </main>
 </div>
+<div id="menu-backdrop" class="menu-backdrop hidden"></div>
 <div id="notice" class="hidden" role="status" aria-live="polite"></div>
 <div id="appointment-backdrop" class="drawer-backdrop hidden"></div>
 <div id="appointment-drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title"><div class="drawer-head"><div><h2 id="drawer-title">Agendamento</h2><p id="drawer-subtitle" class="muted"></p></div><button id="drawer-close" type="button" class="secondary" aria-label="Fechar painel">✕</button></div><dl id="drawer-details"></dl><div id="drawer-actions" class="stack"></div><div class="panel" style="margin-top:24px"><h2>Última interação no WhatsApp</h2><p id="drawer-conversation" class="muted">Carregando...</p></div></div>
@@ -201,11 +292,12 @@ function fillExtraFields(entity,values){for(const input of $(`${entity}-extra-fi
 function applySegmentConfig() {
   if (!segmentConfig) return;
   const c = segmentConfig;
-  document.documentElement.style.setProperty('--accent', c.theme.accent);
+  document.documentElement.style.setProperty('--accent', '#e3aa79');
   document.title = `Recepia · ${c.name}`;
   $('onboarding-title').textContent = c.onboarding.title;
   $('onboarding-hint').textContent = `${c.onboarding.customer_hint} ${c.onboarding.service_hint}`;
-  $('customers-heading').textContent = c.labels.customers;
+  $('customers-heading').textContent = `Sua carteira de ${c.labels.customers.toLowerCase()}`;
+  $('customer-submit').textContent = `Salvar ${c.labels.customer.toLowerCase()}`;
   $('services-heading').textContent = `${c.labels.services} cadastrados`;
   $('professionals-heading').textContent = c.labels.professionals;
   $('appointment-customer-label').textContent = c.labels.customer;
@@ -223,21 +315,41 @@ function applySegmentConfig() {
   if (!editingProfessional) $('professional-form-title').textContent = `Novo ${c.labels.professional.toLowerCase()}`;
   if (!editingAppointment) $('appointment-form-title').textContent = `Novo ${c.labels.appointment.toLowerCase()}`;
   const nav = $('main-nav');
-  nav.replaceChildren(...c.navigation.map(item => {
+  const navGroup = id => {
+    if (['overview', 'agenda', 'appointments', 'reservations', 'checkins', 'checkouts'].includes(id)) return 'Visão geral e agenda';
+    if (['customers', 'vehicles', 'pets', 'services', 'professionals', 'work_orders', 'rooms', 'history'].includes(id)) return 'Gestão';
+    if (['conversations', 'whatsapp'].includes(id)) return 'Atendimento';
+    return 'Configurações';
+  };
+  let currentGroup = '';
+  const navItems = [];
+  for (const item of c.navigation) {
+    const group = navGroup(item.id);
+    if (group !== currentGroup) {
+      const heading = document.createElement('div'); heading.className = 'nav-group-label'; heading.textContent = group;
+      navItems.push(heading); currentGroup = group;
+    }
     const control = document.createElement(item.id === 'history' ? 'a' : 'button');
     if (item.id === 'history') control.href = '/dashboard/?legacy=1';
     else { control.type = 'button'; control.dataset.tab = item.id; control.disabled = item.enabled===false; control.title = item.enabled===false?'Módulo em implantação':''; control.onclick = () => showTab(item.id); }
     const icon = document.createElement('i'); icon.setAttribute('data-lucide', item.icon); icon.setAttribute('aria-hidden', 'true');
     const text = document.createElement('span'); text.textContent = item.label;
     control.append(icon, text);
-    return control;
-  }));
+    navItems.push(control);
+  }
+  nav.replaceChildren(...navItems);
   if (window.lucide) window.lucide.createIcons();
   const current = document.querySelector('main section:not(.hidden)')?.id || 'overview';
   const selected = c.navigation.find(item => item.id === current)?.id || 'overview';
-  nav.querySelector(`[data-tab="${selected}"]`)?.classList.add('active');
+  const selectedControl = nav.querySelector(`[data-tab="${selected}"]`);
+  selectedControl?.classList.add('active');
+  selectedControl?.setAttribute('aria-current', 'page');
 }
 window.addEventListener('load', () => window.lucide?.createIcons());
+function closeMobileMenu() { document.body.classList.remove('menu-open'); $('menu-backdrop').classList.add('hidden'); $('mobile-menu-button').setAttribute('aria-expanded', 'false'); }
+$('mobile-menu-button').onclick = () => { const opening = !document.body.classList.contains('menu-open'); document.body.classList.toggle('menu-open', opening); $('menu-backdrop').classList.toggle('hidden', !opening); $('mobile-menu-button').setAttribute('aria-expanded', String(opening)); };
+$('menu-backdrop').onclick = closeMobileMenu;
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileMenu(); });
 let selectedConversation = null;
 let editingService = null;
 let serviceCache = [];
@@ -273,6 +385,18 @@ async function loadOverview() {
 }
 function createMetricCard(card,metrics){const element=document.createElement('div');element.className='panel metric';const caption=document.createElement('span');caption.textContent=card.label;const value=document.createElement('strong');const number=metrics[card.metric];value.textContent=number==null?'—':card.format==='currency'?Number(number).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):number;value.title=number==null?'Indicador disponível após ativar o módulo correspondente':'';element.append(caption,value);return element;}
 async function loadOnboarding(whatsapp) {
+  if(segmentConfig?.business_type==='RECEPIA'){
+    const [business,settings]=await Promise.all([api('/api/negocio'),api('/api/negocio/configuracao')]);
+    const steps=[
+      ['1. Identidade da Recepia',business.nome==='Recepia','business'],
+      ['2. Instruções comerciais da IA',Boolean(settings?.instrucoes_ia),'business'],
+      ['3. Número para avisos de compra',Boolean(settings?.telefone_suporte_humano),'settings'],
+      ['4. WhatsApp conectado',Boolean(whatsapp.conectado),'whatsapp'],
+      ['5. Testar uma conversa',false,'conversations'],
+    ];
+    $('onboarding-list').replaceChildren(...steps.map(([label,done,tab])=>{const row=document.createElement('div');row.className='row';const text=document.createElement('span');text.textContent=`${done?'✓':'○'} ${label}`;row.append(text,actionButton(done?'Revisar':'Configurar',()=>showTab(tab)));return row;}));
+    return;
+  }
   const [business,hours,services,professionals,settings]=await Promise.all([api('/api/negocio'),api('/api/horarios'),api('/api/procedimentos'),api('/api/profissionais'),api('/api/negocio/configuracao')]);
   const steps=[
     ['1. Empresa e segmento',Boolean(business.nome&&business.tipo_negocio),'business'],
@@ -294,6 +418,7 @@ async function loadBusiness() {
   $('business-id').value=b.id;
   $('business-name').value=b.nome; $('business-phone').value=b.telefone||''; $('business-email').value=b.email||''; $('business-timezone').value=b.timezone;
   $('business-street').value=b.endereco_rua||'';$('business-number').value=b.endereco_numero||'';$('business-city').value=b.endereco_cidade||'';$('business-state').value=b.endereco_uf||'';$('business-zip').value=b.endereco_cep||'';
+  if(!types.some(t=>t.code===b.tipo_negocio))types.push({code:b.tipo_negocio,name:segmentConfig?.name||b.tipo_negocio});
   $('business-type').replaceChildren(...types.map(t=>option(t.code,t.name))); $('business-type').value=b.tipo_negocio;
   fillExtraFields('business',b.campos_extras);
   $('settings-description').value=c?.descricao||''; $('settings-instructions').value=c?.instrucoes_ia||'';
@@ -301,25 +426,51 @@ async function loadBusiness() {
   return b;
 }
 async function loadServices() {
-  serviceCache=await api('/api/procedimentos?apenas_ativos=false');
-  const table=document.createElement('table'); table.className='service-table';
-  const head=document.createElement('thead');const header=document.createElement('tr');
-  ['Serviço','Duração','Preço','Status','Ações'].forEach(label=>{const th=document.createElement('th');th.textContent=label;header.append(th);});head.append(header);
-  const body=document.createElement('tbody');
-  for(const s of serviceCache){
-    const row=document.createElement('tr');
-    const name=document.createElement('td');const title=document.createElement('strong');title.textContent=s.nome;name.append(title);
-    if(s.descricao){const desc=document.createElement('div');desc.className='muted';desc.textContent=s.descricao;name.append(desc);}
-    const duration=document.createElement('td');duration.textContent=formatDuration(s.duracao_minutos);
-    const price=document.createElement('td');price.textContent=s.preco==null?'Não informado':Number(s.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-    const status=document.createElement('td');status.textContent=s.ativo?'Ativo':'Inativo';
-    const actions=document.createElement('td');actions.className='stack';
-    actions.append(actionButton('Editar',()=>editService(s.id)),actionButton(s.ativo?'Inativar':'Ativar',()=>toggleService(s)));
-    if(s.ativo)actions.append(actionButton('Excluir',()=>confirmDeleteService(s),'danger'));
-    row.append(name,duration,price,status,actions);body.append(row);
-  }
-  table.append(head,body);$('services-list').replaceChildren(table);
+  serviceCache=await api('/api/procedimentos?apenas_ativos=false',{cache:'no-store'});
+  renderServices();
 }
+let serviceFilter='active';
+function renderServices() {
+  const activeCount=serviceCache.filter(service=>service.ativo).length;
+  $('service-active-count').textContent=`${activeCount} ${activeCount===1?'serviço ativo':'serviços ativos'}`;
+  document.querySelectorAll('#service-filters button').forEach(button=>{
+    const selected=button.dataset.filter===serviceFilter;
+    button.classList.toggle('active',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  });
+  const query=$('service-search').value.trim().toLocaleLowerCase('pt-BR');
+  const visible=serviceCache.filter(service=>
+    (serviceFilter==='all'||(serviceFilter==='active')===service.ativo)
+    && (!query||`${service.nome} ${service.descricao||''}`.toLocaleLowerCase('pt-BR').includes(query))
+  );
+  const list=$('services-list'); list.replaceChildren();
+  if (!visible.length) {
+    const empty=document.createElement('div'); empty.className='service-empty';
+    const icon=document.createElement('div'); icon.className='service-empty-icon'; icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><path d="m17 17 2 2 3-4"/></svg>';
+    const title=document.createElement('strong'); title.textContent=query?'Nenhum serviço encontrado':serviceFilter==='inactive'?'Nenhum serviço inativo':'Nenhum serviço ativo';
+    const hint=document.createElement('p'); hint.textContent=query?'Tente outro nome ou descrição.':serviceFilter==='inactive'?'Serviços inativados ou excluídos aparecem aqui.':'Cadastre um serviço para começar a receber agendamentos.';
+    empty.append(icon,title,hint); list.append(empty); return;
+  }
+  for (const service of visible) {
+    const item=document.createElement('article'); item.className='service-item';
+    const top=document.createElement('div'); top.className='service-item-main';
+    const identity=document.createElement('div');
+    const title=document.createElement('h3'); title.textContent=service.nome; identity.append(title);
+    if (service.descricao) { const desc=document.createElement('p'); desc.textContent=service.descricao; identity.append(desc); }
+    const status=document.createElement('span'); status.className=`service-status${service.ativo?'':' inactive'}`; status.textContent=service.ativo?'Ativo':'Inativo';
+    top.append(identity,status);
+    const meta=document.createElement('div'); meta.className='service-meta';
+    const duration=document.createElement('span'); duration.textContent=formatDuration(service.duracao_minutos);
+    const price=document.createElement('span'); price.textContent=service.preco==null?'Preço não informado':Number(service.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    meta.append(duration,price);
+    const actions=document.createElement('div'); actions.className='service-actions';
+    actions.append(actionButton('Editar',()=>editService(service.id)),actionButton(service.ativo?'Inativar':'Ativar',()=>toggleService(service)));
+    if (service.ativo) actions.append(actionButton('Excluir',()=>confirmDeleteService(service),'danger'));
+    item.append(top,meta,actions); list.append(item);
+  }
+}
+$('service-search').oninput=renderServices;
+document.querySelectorAll('#service-filters button').forEach(button=>button.onclick=()=>{serviceFilter=button.dataset.filter;renderServices();});
 function formatDuration(minutes){const n=Number(minutes);if(n<60||n%30!==0)return `${n} min`;const h=Math.floor(n/60);return n%60?`${h}h 30min`:`${h}h`;}
 function serviceDurationMinutes(){const raw=Number($('service-duration').value);const minutes=$('service-duration-unit').value==='hours'?raw*60:raw;if(!Number.isInteger(minutes)||minutes<5||minutes>480)throw new Error('Informe uma duração entre 5 minutos e 8 horas.');return minutes;}
 let previousDurationUnit='minutes';
@@ -327,17 +478,53 @@ function editService(id) { const s=serviceCache.find(x=>x.id===id);if(!s)return;
 function resetService() { editingService=null;$('service-form').reset();previousDurationUnit='minutes';updateDurationUnit();$('service-form-title').textContent=`Novo ${segmentConfig?.labels.service.toLowerCase()||'serviço'}`;$('service-cancel').classList.add('hidden'); }
 function updateDurationUnit(){const hours=$('service-duration-unit').value==='hours';$('service-duration').min=hours?'0.1':'5';$('service-duration').max=hours?'8':'480';$('service-duration').step=hours?'0.5':'1';}
 $('service-duration-unit').onchange=()=>{const raw=Number($('service-duration').value);const minutes=previousDurationUnit==='hours'?raw*60:raw;const next=$('service-duration-unit').value;$('service-duration').value=next==='hours'?minutes/60:minutes;previousDurationUnit=next;updateDurationUnit();};
-async function toggleService(service){try{await api(`/api/procedimentos/${service.id}`,{method:'PUT',body:JSON.stringify({ativo:!service.ativo})});await loadServices();notice(service.ativo?'Serviço inativado':'Serviço ativado');}catch(error){notice(error.message);}}
+async function toggleService(service){try{await api(`/api/procedimentos/${service.id}`,{method:'PUT',body:JSON.stringify({ativo:!service.ativo})});if(!service.ativo)serviceFilter='active';await loadServices();notice(service.ativo?'Serviço inativado. Encontre-o em Inativos.':'Serviço ativado');}catch(error){notice(error.message);}}
 let pendingServiceDelete=null;
-function confirmDeleteService(service){pendingServiceDelete=service;$('service-delete-message').textContent=`Tem certeza que deseja excluir ${service.nome}? O histórico será preservado.`;$('service-delete-dialog').showModal();}
+function confirmDeleteService(service){pendingServiceDelete=service;$('service-delete-message').textContent=`Excluir ${service.nome} da lista de serviços ativos? Os agendamentos antigos serão preservados. Você poderá reativá-lo em Inativos.`;$('service-delete-dialog').showModal();}
 $('service-delete-cancel').onclick=()=>{$('service-delete-dialog').close();pendingServiceDelete=null;};
-$('service-delete-confirm').onclick=async()=>{if(!pendingServiceDelete)return;const service=pendingServiceDelete;try{await api(`/api/procedimentos/${service.id}`,{method:'DELETE'});$('service-delete-dialog').close();pendingServiceDelete=null;await loadServices();notice('Serviço excluído da oferta de novos agendamentos');}catch(error){notice(error.message);}};
+$('service-delete-confirm').onclick=async()=>{if(!pendingServiceDelete)return;const service=pendingServiceDelete;try{await api(`/api/procedimentos/${service.id}`,{method:'DELETE'});$('service-delete-dialog').close();pendingServiceDelete=null;if(editingService===service.id)resetService();serviceFilter='active';await loadServices();notice('Serviço removido do catálogo ativo. Histórico preservado.');}catch(error){notice(error.message);}};
 function option(value,label) { const item=document.createElement('option');item.value=value;item.textContent=label;return item; }
 function actionButton(label,click,kind='secondary') { const button=document.createElement('button');button.type='button';button.className=kind;button.textContent=label;button.onclick=click;return button; }
 async function loadCustomers() {
   customerCache=await api('/api/pacientes');
-  $('customers-list').replaceChildren(...customerCache.map(c=>{const row=document.createElement('div');row.className='row';const text=document.createElement('div');const title=document.createElement('strong');title.textContent=c.nome;const meta=document.createElement('div');meta.className='muted';meta.textContent=[c.telefone,c.email].filter(Boolean).join(' · ');text.append(title,meta);const actions=document.createElement('div');actions.className='stack';actions.append(actionButton('Histórico',()=>loadCustomerProfile(c.id)),actionButton('Editar',()=>editCustomer(c.id)),actionButton('Excluir',async()=>{if(!confirm(`Excluir ${c.nome}?`))return;try{await api(`/api/pacientes/${c.id}`,{method:'DELETE'});await loadCustomers();notice('Cliente excluído');}catch(error){notice(error.message);}},'danger'));row.append(text,actions);return row;}));
+  renderCustomers();
 }
+function customerSearchKey(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');}
+function renderCustomers(){
+  const term=customerSearchKey($('customer-search').value.trim());
+  const customers=customerCache.filter(c=>customerSearchKey([c.nome,c.telefone,c.email].join(' ')).includes(term));
+  const singular=segmentConfig?.labels.customer.toLowerCase()||'cliente';
+  const plural=segmentConfig?.labels.customers.toLowerCase()||'clientes';
+  $('customer-count').textContent=`${customerCache.length} ${customerCache.length===1?`${singular} cadastrado`:`${plural} cadastrados`}`;
+  const list=$('customers-list');list.replaceChildren();
+  if(!customers.length){
+    const empty=document.createElement('div');empty.className='customer-empty';
+    const icon=document.createElement('span');icon.className='customer-empty-icon';icon.setAttribute('aria-hidden','true');icon.textContent=term?'⌕':'✦';
+    const title=document.createElement('strong');title.textContent=term?'Nenhum cliente encontrado':'Sua carteira começa aqui';
+    const description=document.createElement('p');description.textContent=term?'Tente buscar por outro nome, telefone ou e-mail.':`Cadastre o primeiro ${singular} no formulário ao lado.`;
+    empty.append(icon,title,description);list.append(empty);return;
+  }
+  for(const c of customers){
+    const card=document.createElement('article');card.className='customer-card';
+    const identity=document.createElement('div');identity.className='customer-identity';
+    const avatar=document.createElement('span');avatar.className='customer-avatar';avatar.setAttribute('aria-hidden','true');avatar.textContent=(c.nome||'?').trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase('pt-BR');
+    const details=document.createElement('div');details.className='customer-details';
+    const title=document.createElement('h3');title.textContent=c.nome;
+    const meta=document.createElement('div');meta.className='customer-meta';
+    if(c.telefone){const phone=document.createElement('span');phone.textContent=c.telefone;meta.append(phone);}
+    if(c.email){const email=document.createElement('span');email.textContent=c.email;meta.append(email);}
+    details.append(title,meta);identity.append(avatar,details);
+    const actions=document.createElement('div');actions.className='customer-actions';
+    actions.append(actionButton('Histórico',()=>loadCustomerProfile(c.id)),actionButton('Editar',()=>editCustomer(c.id)));
+    const remove=actionButton('Excluir',async()=>{
+      if(!confirm(`Excluir ${c.nome}? O cliente será removido da lista e deixará de receber mensagens automáticas.`))return;
+      try{await api(`/api/pacientes/${c.id}`,{method:'DELETE'});if(editingCustomer===c.id)resetCustomer();$('customer-profile').classList.add('hidden');await loadCustomers();notice('Cliente excluído');}catch(error){notice(error.message);}
+    },'danger');remove.setAttribute('aria-label',`Excluir ${c.nome}`);actions.append(remove);
+    card.append(identity,actions);list.append(card);
+  }
+}
+$('customer-search').oninput=renderCustomers;
+$('customer-profile-close').onclick=()=>$('customer-profile').classList.add('hidden');
 async function loadCustomerProfile(id){
   const customer=customerCache.find(c=>c.id===id);if(!customer)return;
   const [appointments,conversations,vehicles,pets]=await Promise.all([
@@ -349,9 +536,11 @@ async function loadCustomerProfile(id){
   $('customer-profile').classList.remove('hidden');
   const content=$('customer-profile-content');content.replaceChildren();
   const add=(label,items)=>{
-    const h=document.createElement('h3');h.textContent=label;content.append(h);
-    if(!items.length){const p=document.createElement('p');p.className='muted';p.textContent='Nenhum registro.';content.append(p);}
-    else for(const value of items){const p=document.createElement('p');p.textContent=value;content.append(p);}
+    const group=document.createElement('div');group.className='customer-history-group';
+    const h=document.createElement('h3');h.textContent=label;group.append(h);
+    if(!items.length){const p=document.createElement('p');p.className='muted';p.textContent='Nenhum registro.';group.append(p);}
+    else for(const value of items){const p=document.createElement('p');p.textContent=value;group.append(p);}
+    content.append(group);
   };
   const extras=(segmentConfig?.extra_fields?.customer||[]).filter(f=>customer.campos_extras?.[f.key]).map(f=>`${f.label}: ${customer.campos_extras[f.key]}`);
   if(extras.length)add('Dados adicionais',extras);
@@ -361,8 +550,8 @@ async function loadCustomerProfile(id){
   add('Conversas',conversations.filter(c=>c.cliente_id===id).map(c=>`${c.telefone} · ${c.ultima_mensagem_em||'Sem mensagens'}`));
   $('customer-profile').scrollIntoView({behavior:'smooth'});
 }
-function editCustomer(id) { const c=customerCache.find(item=>item.id===id);if(!c)return;editingCustomer=id;$('customer-form-title').textContent='Editar cliente';$('customer-name').value=c.nome;$('customer-phone').value=c.telefone;$('customer-email').value=c.email||'';$('customer-notes').value=c.notas||'';fillExtraFields('customer',c.campos_extras);$('customer-cancel').classList.remove('hidden');$('customer-name').focus(); }
-function resetCustomer() { editingCustomer=null;$('customer-form').reset();$('customer-form-title').textContent='Novo cliente';$('customer-cancel').classList.add('hidden'); }
+function editCustomer(id) { const c=customerCache.find(item=>item.id===id);if(!c)return;editingCustomer=id;$('customer-form-title').textContent=`Editar ${segmentConfig?.labels.customer.toLowerCase()||'cliente'}`;$('customer-name').value=c.nome;$('customer-phone').value=c.telefone;$('customer-email').value=c.email||'';$('customer-notes').value=c.notas||'';fillExtraFields('customer',c.campos_extras);$('customer-cancel').classList.remove('hidden');$('customer-form').scrollIntoView({behavior:'smooth',block:'start'});$('customer-name').focus({preventScroll:true}); }
+function resetCustomer() { editingCustomer=null;$('customer-form').reset();$('customer-form-title').textContent=`Novo ${segmentConfig?.labels.customer.toLowerCase()||'cliente'}`;$('customer-cancel').classList.add('hidden'); }
 async function loadVehicles() {
   [vehicleCache,customerCache]=await Promise.all([api('/api/veiculos?apenas_ativos=false'),api('/api/pacientes')]);
   $('vehicle-customer').replaceChildren(option('','Selecione um cliente'),...customerCache.map(c=>option(c.id,c.nome)));
@@ -512,7 +701,12 @@ async function loadWhatsapp() { const s=await api('/api/whatsapp/status'); $('wh
 async function showTab(tab) {
   const target = tab === 'appointments' ? 'agenda' : tab;
   document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==target));
-  document.querySelectorAll('#main-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('#main-nav button').forEach(button=>{
+    const active=button.dataset.tab===tab;
+    button.classList.toggle('active',active);
+    if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+  });
+  closeMobileMenu();
   const item=segmentConfig?.navigation.find(entry=>entry.id===tab);
   $('page-title').textContent=tab==='overview'?(segmentConfig?.dashboard.title||'Dashboard'):(item?.label||'Dashboard');
   $('page-subtitle').textContent=tab==='overview'?(segmentConfig?.dashboard.subtitle||''):'';

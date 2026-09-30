@@ -4,6 +4,7 @@ import httpx
 import pytest
 
 from models import AIUsage
+from services.ai.failover import FailoverProvider
 from services.ai.openrouter import AIRequestError, OpenRouterProvider
 
 
@@ -101,3 +102,64 @@ def test_tool_call_envia_schema_ao_backend():
         ],
     )
     assert result["tool_calls"][0]["function"]["name"] == "listServices"
+
+
+def test_limite_diario_openrouter_muda_para_groq_e_mantem_ferramentas(
+    db_session, clinica_fake,
+):
+    requests = []
+
+    def handler(request):
+        body = __import__("json").loads(request.content)
+        requests.append((request.url.host, body["model"]))
+        assert body["tools"][0]["function"]["name"] == "listServices"
+        if request.url.host == "openrouter.ai":
+            return httpx.Response(
+                429,
+                json={"error": {"message": "Rate limit exceeded: free-models-per-day"}},
+            )
+        assert request.url.host == "api.groq.com"
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"role": "assistant", "content": "Olá"}}],
+                "usage": {"prompt_tokens": 7, "completion_tokens": 2},
+            },
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    primary = OpenRouterProvider(
+        db_session, client, api_key="test-key", model="primary",
+        fallback_model="backup",
+    )
+    secondary = OpenRouterProvider(
+        db_session, client, api_key="test-groq-key", model="groq-model",
+        fallback_model="", base_url="https://api.groq.com/openai/v1",
+        provider_name="groq",
+    )
+    provider = FailoverProvider(primary, secondary)
+    tools = [
+        {
+            "type": "function",
+            "function": {"name": "listServices", "parameters": {"type": "object"}},
+        }
+    ]
+    tenant_id = clinica_fake["clinica"].id
+    for _ in range(2):
+        result = provider.chat_with_tools(
+            [{"role": "user", "content": "oi"}], tools, tenant_id=tenant_id,
+        )
+        assert result["content"] == "Olá"
+    db_session.flush()
+
+    assert requests == [
+        ("openrouter.ai", "primary"),
+        ("api.groq.com", "groq-model"),
+        ("api.groq.com", "groq-model"),
+    ]
+    usage = db_session.query(AIUsage).all()
+    assert [(row.provider, row.error_code, row.success) for row in usage] == [
+        ("openrouter", "429", False),
+        ("groq", None, True),
+        ("groq", None, True),
+    ]

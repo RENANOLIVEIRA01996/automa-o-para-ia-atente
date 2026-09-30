@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="recepia-public recepia-signup">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -40,6 +40,7 @@
   input[type="checkbox"]:checked + .check-box svg { opacity: 1; }
   .check-box svg { opacity: 0; transition: opacity .15s; }
 </style>
+<link rel="stylesheet" href="/recepia.theme.css?v=clientes-20260929-1">
 </head>
 <body class="bg-cream text-graphite">
 
@@ -56,7 +57,7 @@
 </header>
 
 <!-- ============ HERO ============ -->
-<section class="relative pt-28 pb-10 sm:pt-32 sm:pb-12 overflow-hidden">
+<section class="signup-hero relative pt-28 pb-10 sm:pt-32 sm:pb-12 overflow-hidden">
   <div class="absolute inset-0 -z-10">
     <div class="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-rose-soft blur-3xl opacity-60"></div>
     <div class="absolute top-40 -right-32 w-[420px] h-[420px] rounded-full bg-sage/20 blur-3xl"></div>
@@ -67,8 +68,8 @@
       criar conta · grátis por 7 dias
     </span>
     <h1 class="mt-5 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
-      comece grátis<br/>
-      <span class="italic font-normal text-graphite">em 1 minuto.</span>
+      Sua operação começa<br/>
+      <span class="italic font-normal text-graphite">aqui.</span>
     </h1>
     <p class="mt-5 text-base sm:text-lg text-graphite-soft leading-relaxed max-w-xl mx-auto">
       7 dias pra testar tudo &middot; sem cartão &middot; cancele a qualquer momento
@@ -82,9 +83,18 @@
 </section>
 
 <!-- ============ FORM ============ -->
-<section class="relative pb-20">
-  <div class="max-w-3xl mx-auto px-4 sm:px-6">
+<section class="signup-section relative pb-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="signup-layout">
+      <aside class="signup-side" aria-label="Como começar">
+        <span class="signup-side-eyebrow">SEU PRÓXIMO PASSO</span>
+        <h2>Atenda melhor.<br><em>Desde o primeiro dia.</em></h2>
+        <p>Deixe a rotina organizada para sua equipe e ofereça uma experiência mais ágil aos seus clientes.</p>
+        <ol class="signup-steps"><li><span>01</span><div><strong>Escolha seu segmento</strong><small>Preparamos os campos certos para o seu negócio.</small></div></li><li><span>02</span><div><strong>Crie sua conta</strong><small>Seu espaço fica pronto em poucos passos.</small></div></li><li><span>03</span><div><strong>Configure e comece</strong><small>Conecte o WhatsApp e personalize o atendimento.</small></div></li></ol>
+        <div class="signup-side-note"><span aria-hidden="true">✦</span><div><strong>7 dias para conhecer tudo</strong><small>Sem cartão de crédito para criar a conta.</small></div></div>
+      </aside>
     <form id="signup-form" class="bg-white rounded-3xl shadow-2xl shadow-graphite/10 ring-1 ring-graphite/5 p-6 sm:p-10" novalidate>
+      <div class="signup-form-head"><span>CRIE SEU ESPAÇO</span><h2>Vamos começar?</h2><p>Conte um pouco sobre sua empresa para preparar o Recepia.</p></div>
 
       <!-- 3.1 Nicho -->
       <fieldset>
@@ -255,6 +265,7 @@
       </p>
 
     </form>
+    </div>
   </div>
 </section>
 
@@ -423,7 +434,7 @@
           return;
         }
         if (window.plausible) window.plausible('Signup', { props: { vertical: payload.especialidade }});
-        window.location = '/dashboard/saas.html';
+        window.location = '/dashboard/saas.html?v=clientes-20260929-1';
         return;
       }
 

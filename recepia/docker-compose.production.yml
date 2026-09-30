@@ -1,0 +1,137 @@
+name: recepia
+
+services:
+  # Somente a Evolution usa este PostgreSQL. Os dados da Recepia ficam no Neon.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: recepia
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: recepia
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U recepia -d evolution -tAc 'SELECT 1' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks: [recepia_net]
+
+  evolution:
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    environment:
+      SERVER_URL: http://evolution:8080
+      AUTHENTICATION_TYPE: apikey
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:?Configure EVOLUTION_API_KEY no .env}
+      QRCODE_LIMIT: "30"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://recepia:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no .env}@postgres:5432/evolution?schema=public
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      LOG_LEVEL: ERROR,WARN,INFO
+      WEBHOOK_GLOBAL_URL: http://api:8000/api/webhook/evolution
+      WEBHOOK_GLOBAL_ENABLED: "false"
+    volumes:
+      - evolution_data:/evolution/instances
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const h=require('http');const r=h.get('http://127.0.0.1:8080/',x=>process.exit(x.statusCode<500?0:1));r.on('error',()=>process.exit(1));r.setTimeout(4000,()=>{r.destroy();process.exit(1)})"]
+      interval: 30s
+      timeout: 6s
+      retries: 5
+      start_period: 90s
+    logging: *logs
+    networks: [recepia_net]
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8000"
+      DEBUG: "false"
+      HTTPS_ENABLED: "true"
+      AI_PROVIDER: openrouter
+      RUN_DB_MIGRATIONS_ON_STARTUP: "false"
+      EVOLUTION_API_URL: http://evolution:8080
+      EVOLUTION_API_HOSTPORT: ""
+      PUBLIC_WEBHOOK_URL: http://api:8000
+    volumes:
+      - recepia_fotos:/data/fotos
+      - recepia_avatares:/data/fotos_paciente
+      - recepia_logos:/data/logos
+    depends_on:
+      evolution:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging: *logs
+    networks: [recepia_net]
+
+  worker:
+    build: .
+    command: python cron/jobs.py
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DEBUG: "false"
+      AI_PROVIDER: openrouter
+      RUN_DB_MIGRATIONS_ON_STARTUP: "false"
+      EVOLUTION_API_URL: http://evolution:8080
+      EVOLUTION_API_HOSTPORT: ""
+    depends_on:
+      api:
+        condition: service_healthy
+    # APScheduler nao fornece endpoint HTTP; processo e logs sao monitorados no Docker.
+    healthcheck:
+      disable: true
+    logging: *logs
+    networks: [recepia_net]
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Configure DOMAIN no .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logs
+    networks: [recepia_net]
+
+volumes:
+  postgres_data:
+  evolution_data:
+  recepia_fotos:
+  recepia_avatares:
+  recepia_logos:
+  caddy_data:
+  caddy_config:
+
+networks:
+  recepia_net:
+    driver: bridge

@@ -1,4 +1,5 @@
 # Env / secrets — NUNCA copiar pra imagem
+backups/
 .env
 .env.*
 !.env.example

@@ -3,6 +3,8 @@
 from core.segments import SEGMENT_PRESETS
 
 BUSINESS_TYPES = frozenset(SEGMENT_PRESETS)
+INTERNAL_BUSINESS_TYPES = frozenset({"RECEPIA"})
+PUBLIC_BUSINESS_TYPES = BUSINESS_TYPES - INTERNAL_BUSINESS_TYPES
 
 
 def normalize_business_type(value: str) -> str:

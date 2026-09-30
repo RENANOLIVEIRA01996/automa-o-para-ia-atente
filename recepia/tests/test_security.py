@@ -1,5 +1,7 @@
 """Testes de hash de senha e JWT (core/security.py)."""
 from datetime import datetime, timedelta
+import base64
+import hashlib
 
 
 from core.security import (
@@ -7,7 +9,18 @@ from core.security import (
     decodificar_token,
     hash_senha,
     verificar_senha,
+    verificar_senha_admin,
 )
+
+
+def test_senha_admin_pbkdf2_e_hash_invalido():
+    salt = b"1234567890abcdef"
+    digest = hashlib.pbkdf2_hmac("sha256", b"senha-forte-nova", salt, 300000)
+    encoded = lambda value: base64.urlsafe_b64encode(value).decode().rstrip("=")
+    password_hash = f"pbkdf2_sha256$300000${encoded(salt)}${encoded(digest)}"
+    assert verificar_senha_admin("senha-forte-nova", password_hash)
+    assert not verificar_senha_admin("senha-errada", password_hash)
+    assert not verificar_senha_admin("senha-forte-nova", "pbkdf2_sha256$300000$%%%$%%%")
 
 
 # ===========================================================================

@@ -117,6 +117,23 @@ class TestListarClinicas:
         assert resp.status_code in (401, 422)
 
 
+def test_admin_altera_segmento_com_catalogo_real(client, admin_headers, clinica_fake):
+    tenant = clinica_fake["clinica"]
+    catalog = client.get("/admin/clinicas/segmentos", headers=admin_headers)
+    assert catalog.status_code == 200
+    assert {item["code"] for item in catalog.json()} >= {"CAR_WASH", "RECEPIA"}
+    changed = client.post(
+        f"/admin/clinicas/{tenant.id}/tipo-negocio", headers=admin_headers,
+        json={"novo_tipo": "RECEPIA", "motivo": "Atendimento interno"},
+    )
+    assert changed.status_code == 200
+    assert changed.json()["tipo_negocio"] == "RECEPIA"
+    assert client.get("/api/negocio/segmentos").status_code == 200
+    assert "RECEPIA" not in {
+        item["code"] for item in client.get("/api/negocio/segmentos").json()
+    }
+
+
 class TestDesativarClinica:
     def test_desativar_sucesso(self, client, admin_headers, clinica_fake, db_session):
         cid = clinica_fake["clinica"].id

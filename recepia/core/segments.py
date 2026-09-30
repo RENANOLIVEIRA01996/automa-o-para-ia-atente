@@ -572,6 +572,39 @@ SEGMENT_PRESETS = {
             "professional": "users",
         },
     },
+    "RECEPIA": {
+        "name": "Recepia · atendimento comercial",
+        "labels": {
+            "customer": "Interessado",
+            "customers": "Interessados",
+            "service": "Plano",
+            "services": "Planos",
+        },
+        "dashboard": {
+            "title": "Atendimento comercial",
+            "subtitle": "Acompanhe contatos e conversas sobre o Recepia.",
+            "cards": [
+                {"metric": "conversas", "label": "Conversas"},
+                {"metric": "novos_clientes_hoje", "label": "Novos interessados hoje"},
+                {"metric": "conversas_humanas", "label": "Em atendimento humano"},
+                {"metric": "mensagens_hoje", "label": "Mensagens hoje"},
+            ],
+        },
+        "navigation": ("overview", "customers", "conversations", "whatsapp", "business", "settings", "plan"),
+        "navigation_labels": {"business": "Recepia e IA"},
+        "onboarding": {
+            "title": "Prepare a recepcionista do Recepia",
+            "customer_hint": "Atenda interessados pelo WhatsApp conectado.",
+            "service_hint": "Revise os planos e as instruções comerciais da IA.",
+        },
+        "ai": {
+            "guidance": (
+                "Atenda interessados na plataforma Recepia. Explique planos e recursos "
+                "com base apenas no catálogo oficial; encaminhe intenção de compra "
+                "ou pedido de negociação para atendimento humano."
+            )
+        },
+    },
     "OTHER": {},
 }
 

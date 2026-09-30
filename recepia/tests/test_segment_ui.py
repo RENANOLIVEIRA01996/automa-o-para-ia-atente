@@ -4,7 +4,8 @@ from core.segments import SEGMENT_PRESETS, get_segment_config
 
 
 def test_all_presets_have_resolved_navigation_and_no_shared_mutation():
-    assert len(SEGMENT_PRESETS) == 10
+    assert len(SEGMENT_PRESETS) == 11
+    assert "RECEPIA" in SEGMENT_PRESETS
     for code in SEGMENT_PRESETS:
         config = get_segment_config(code)
         assert config["business_type"] == code

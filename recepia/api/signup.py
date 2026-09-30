@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from core import audit
 from core.especialidades import listar_slugs
-from core.business_types import normalize_business_type
+from core.business_types import PUBLIC_BUSINESS_TYPES, normalize_business_type
 from core.limiter import limiter
 from core.phones import TelefoneInvalido, normalizar as normalizar_telefone
 from core.security import criar_token, hash_senha
@@ -42,7 +42,10 @@ class SignupIn(BaseModel):
     @field_validator("tipo_negocio")
     @classmethod
     def _tipo(cls, v):
-        return normalize_business_type(v)
+        tipo = normalize_business_type(v)
+        if tipo not in PUBLIC_BUSINESS_TYPES:
+            raise ValueError("Tipo de negócio indisponível para cadastro público")
+        return tipo
 
     @field_validator("aceito_termos")
     @classmethod

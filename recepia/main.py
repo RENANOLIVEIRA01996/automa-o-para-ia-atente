@@ -55,6 +55,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(self)"
+        # O painel contém código de interface que muda com frequência. Evita
+        # que uma aba antiga continue exibindo ações e estilos já corrigidos.
+        if (request.url.path.startswith("/dashboard") and (
+            request.url.path.endswith("/") or request.url.path.endswith(".html")
+        )) or request.url.path in {"/", "/cadastro", "/entrar", "/termos", "/privacidade"}:
+            response.headers["Cache-Control"] = "no-store, max-age=0"
         # HSTS só em produção HTTPS (toggle por env pra não quebrar dev http)
         if os.getenv("HTTPS_ENABLED", "false").lower() == "true":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -173,10 +179,17 @@ def tailwind_css():
     from fastapi.responses import FileResponse
     return FileResponse(STATIC_DIR / "recepia.tailwind.css", media_type="text/css")
 
-    @app.get("/sitemap.xml", include_in_schema=False)
-    def sitemap():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "sitemap.xml", media_type="application/xml")
+
+@app.get("/recepia.theme.css", include_in_schema=False)
+def recepia_theme_css():
+    from fastapi.responses import FileResponse
+    return FileResponse(STATIC_DIR / "recepia.theme.css", media_type="text/css")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap():
+    from fastapi.responses import FileResponse
+    return FileResponse(LANDING_DIR / "sitemap.xml", media_type="application/xml")
 
 
 @app.get("/api/relatorios/dashboard")

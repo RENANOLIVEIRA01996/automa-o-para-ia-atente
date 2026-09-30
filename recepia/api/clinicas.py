@@ -25,7 +25,9 @@ from core.especialidades import config_efetiva, get_especialidade, listar_slugs,
 from core.foto_storage import MAX_UPLOAD_BYTES, FotoError, deletar_logo, ler_logo, salvar_logo
 from core.limiter import limiter
 from core.planos import LIMITES, snapshot_uso
-from core.security import criar_token_admin, gerar_senha_aleatoria, hash_senha
+from core.business_types import BUSINESS_TYPES, normalize_business_type
+from core.segments import get_segment_config
+from core.security import criar_token_admin, gerar_senha_aleatoria, hash_senha, verificar_senha_admin
 from core import audit
 from seeds import aplicar_configuracoes_default, aplicar_horarios_default
 
@@ -42,6 +44,7 @@ class CriarClinicaIn(BaseModel):
     nome: str = Field(..., min_length=2)
     cnpj: str | None = None
     plano: str = Plano.TRIAL
+    tipo_negocio: str = "OTHER"
     especialidade: str = "odonto"   # define labels + campos + documentos disponíveis
     # Usuário admin inicial da clínica
     admin_email: EmailStr
@@ -55,7 +58,9 @@ class ClinicaOut(BaseModel):
     nome: str
     cnpj: str | None
     plano: str
+    tipo_negocio: str
     especialidade: str = "odonto"
+    trial_expira_em: date | None = None
     ativo: bool
     evolution_instance_name: str | None
     evolution_conectado: bool
@@ -83,10 +88,15 @@ def criar_clinica(
     """Onboarding de nova clínica. Cria tenant + usuário admin + templates default."""
     if payload.especialidade not in listar_slugs():
         raise HTTPException(422, f"Especialidade inválida. Use uma de: {listar_slugs()}")
+    try:
+        tipo_negocio = normalize_business_type(payload.tipo_negocio)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     clinica = Clinica(
         nome=payload.nome,
         cnpj=payload.cnpj,
         plano=payload.plano,
+        tipo_negocio=tipo_negocio,
         especialidade=payload.especialidade,
     )
     db.add(clinica)
@@ -132,7 +142,9 @@ def criar_clinica(
         nome=clinica.nome,
         cnpj=clinica.cnpj,
         plano=clinica.plano,
+        tipo_negocio=clinica.tipo_negocio,
         especialidade=clinica.especialidade,
+        trial_expira_em=clinica.trial_expira_em,
         ativo=clinica.ativo,
         api_key=clinica.api_key,
         evolution_instance_name=clinica.evolution_instance_name,
@@ -149,13 +161,24 @@ def listar_clinicas(db: Session = Depends(get_db_dependency)):
         admin = next((u for u in c.usuarios if u.role == "admin"), None)
         out.append(ClinicaOut(
             id=c.id, nome=c.nome, cnpj=c.cnpj, plano=c.plano,
+            tipo_negocio=c.tipo_negocio,
             especialidade=getattr(c, "especialidade", "odonto"),
+            trial_expira_em=c.trial_expira_em,
             ativo=c.ativo,
             evolution_instance_name=c.evolution_instance_name,
             evolution_conectado=c.evolution_conectado,
             admin_login_email=admin.email if admin else None,
         ))
     return out
+
+
+@router.get("/segmentos")
+def listar_segmentos_admin():
+    """Catálogo real de segmentos, incluindo os internos do operador."""
+    return [
+        {"code": code, "name": get_segment_config(code)["name"]}
+        for code in sorted(BUSINESS_TYPES)
+    ]
 
 
 @router.post("/{clinica_id}/rotate-api-key", response_model=ApiKeyRotacionadaOut)
@@ -223,20 +246,20 @@ class AdminTokenOut(BaseModel):
 @limiter.limit("5/minute")
 def login_admin(request: Request, payload: AdminLoginIn,
                 db: Session = Depends(get_db_dependency)):
-    """Valida X-Admin-Key e retorna JWT (TTL 2h) pra UI admin usar via Bearer."""
+    """Aceita senha humana com hash ou a chave técnica; JWT dura 2 horas."""
     import hmac as _hmac
-    # compare_digest: comparação com != vaza timing byte-a-byte da chave mestra.
-    if not _hmac.compare_digest(
-        (payload.admin_key or "").encode(), settings.ADMIN_API_KEY.encode()
-    ):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Admin key inválida")
+    credencial = payload.admin_key or ""
+    chave_tecnica = _hmac.compare_digest(credencial.encode(), settings.ADMIN_API_KEY.encode())
+    senha_painel = False if chave_tecnica else verificar_senha_admin(credencial, settings.ADMIN_PANEL_PASSWORD_HASH)
+    if not (chave_tecnica or senha_painel):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Acesso administrativo inválido")
     # Login com a credencial de maior privilégio precisa de trilha de auditoria.
     audit.log(
         db, clinica_id=None, usuario_id=None,
         acao=AcaoAudit.LOGIN, recurso="admin_master", recurso_id=None,
         ip=request.client.host if request.client else None,
         user_agent=(request.headers.get("user-agent") or "")[:200] or None,
-        detalhes={"metodo": "admin_key"},
+        detalhes={"metodo": "admin_key" if chave_tecnica else "senha_painel"},
     )
     db.commit()
     return AdminTokenOut(access_token=criar_token_admin())
@@ -282,6 +305,11 @@ class AlterarEspecialidadeIn(BaseModel):
     motivo: str | None = Field(None, max_length=300)
 
 
+class AlterarTipoNegocioIn(BaseModel):
+    novo_tipo: str
+    motivo: str | None = Field(None, max_length=300)
+
+
 @router.post("/{clinica_id}/especialidade", response_model=ClinicaOut)
 def alterar_especialidade(
     clinica_id: str,
@@ -316,8 +344,46 @@ def alterar_especialidade(
     admin = next((u for u in clinica.usuarios if u.role == "admin"), None)
     return ClinicaOut(
         id=clinica.id, nome=clinica.nome, cnpj=clinica.cnpj, plano=clinica.plano,
+        tipo_negocio=clinica.tipo_negocio,
         especialidade=clinica.especialidade,
+        trial_expira_em=clinica.trial_expira_em,
         ativo=clinica.ativo,
+        evolution_instance_name=clinica.evolution_instance_name,
+        evolution_conectado=clinica.evolution_conectado,
+        admin_login_email=admin.email if admin else None,
+    )
+
+
+@router.post("/{clinica_id}/tipo-negocio", response_model=ClinicaOut)
+def alterar_tipo_negocio(
+    clinica_id: str,
+    payload: AlterarTipoNegocioIn,
+    db: Session = Depends(get_db_dependency),
+    ctx: dict = Depends(audit_context_admin),
+):
+    try:
+        novo = normalize_business_type(payload.novo_tipo)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    clinica = db.query(Clinica).filter(Clinica.id == clinica_id).first()
+    if not clinica:
+        raise HTTPException(404, "Empresa não encontrada")
+    if clinica.tipo_negocio == novo:
+        raise HTTPException(422, "Empresa já está nesse segmento")
+    anterior = clinica.tipo_negocio
+    clinica.tipo_negocio = novo
+    audit.log(
+        db, **ctx, clinica_id=clinica.id,
+        acao=AcaoAudit.UPDATE, recurso="clinica", recurso_id=clinica.id,
+        detalhes={"acao": "alterar_tipo_negocio", "anterior": anterior, "novo": novo, "motivo": payload.motivo},
+    )
+    db.commit()
+    db.refresh(clinica)
+    admin = next((u for u in clinica.usuarios if u.role == "admin"), None)
+    return ClinicaOut(
+        id=clinica.id, nome=clinica.nome, cnpj=clinica.cnpj, plano=clinica.plano,
+        tipo_negocio=clinica.tipo_negocio, especialidade=clinica.especialidade,
+        trial_expira_em=clinica.trial_expira_em, ativo=clinica.ativo,
         evolution_instance_name=clinica.evolution_instance_name,
         evolution_conectado=clinica.evolution_conectado,
         admin_login_email=admin.email if admin else None,
@@ -358,6 +424,8 @@ def alterar_plano(
     admin = next((u for u in clinica.usuarios if u.role == "admin"), None)
     return ClinicaOut(
         id=clinica.id, nome=clinica.nome, cnpj=clinica.cnpj, plano=clinica.plano,
+        tipo_negocio=clinica.tipo_negocio,
+        trial_expira_em=clinica.trial_expira_em,
         ativo=clinica.ativo,
         evolution_instance_name=clinica.evolution_instance_name,
         evolution_conectado=clinica.evolution_conectado,

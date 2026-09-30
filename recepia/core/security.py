@@ -2,6 +2,10 @@
 import secrets
 import string
 import uuid
+import base64
+import hashlib
+import hmac
+import binascii
 from datetime import timedelta
 from core.timezones import agora_utc
 from jose import jwt, JWTError
@@ -27,6 +31,24 @@ def verificar_senha(senha: str, senha_hash: str) -> bool:
     try:
         return _pwd_ctx.verify(senha, senha_hash)
     except Exception:
+        return False
+
+
+def verificar_senha_admin(senha: str, senha_hash: str) -> bool:
+    """Valida o hash PBKDF2 da senha humana do painel sem expor a chave técnica."""
+    if not senha_hash:
+        return False
+    try:
+        scheme, rounds, salt_b64, digest_b64 = senha_hash.split("$")
+        if scheme != "pbkdf2_sha256" or not 300_000 <= int(rounds) <= 2_000_000:
+            return False
+        salt = base64.urlsafe_b64decode(salt_b64 + "===")
+        expected = base64.urlsafe_b64decode(digest_b64 + "===")
+        if len(salt) < 16 or len(expected) != 32:
+            return False
+        actual = hashlib.pbkdf2_hmac("sha256", senha.encode("utf-8"), salt, int(rounds))
+        return hmac.compare_digest(actual, expected)
+    except (ValueError, TypeError, UnicodeError, binascii.Error):
         return False
 
 

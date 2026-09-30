@@ -1,0 +1,85 @@
+name: recepia-api
+
+services:
+  api:
+    image: recepia-api:production
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8000"
+      DEBUG: "false"
+      HTTPS_ENABLED: "true"
+      AI_PROVIDER: openrouter
+      RUN_DB_MIGRATIONS_ON_STARTUP: "false"
+      EVOLUTION_API_URL: http://${EVOLUTION_PRIVATE_IP:?Configure EVOLUTION_PRIVATE_IP}:8080
+      EVOLUTION_API_HOSTPORT: ""
+      PUBLIC_WEBHOOK_URL: http://${API_PRIVATE_IP:?Configure API_PRIVATE_IP}:8000
+    ports:
+      - "${API_PRIVATE_IP:?Configure API_PRIVATE_IP}:8000:8000"
+    volumes:
+      - recepia_fotos:/data/fotos
+      - recepia_avatares:/data/fotos_paciente
+      - recepia_logos:/data/logos
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks: [recepia_net]
+
+  worker:
+    image: recepia-api:production
+    build: .
+    command: python cron/jobs.py
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DEBUG: "false"
+      AI_PROVIDER: openrouter
+      RUN_DB_MIGRATIONS_ON_STARTUP: "false"
+      EVOLUTION_API_URL: http://${EVOLUTION_PRIVATE_IP:?Configure EVOLUTION_PRIVATE_IP}:8080
+      EVOLUTION_API_HOSTPORT: ""
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    logging: *logs
+    networks: [recepia_net]
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Configure DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logs
+    networks: [recepia_net]
+
+volumes:
+  recepia_fotos:
+  recepia_avatares:
+  recepia_logos:
+  caddy_data:
+  caddy_config:
+
+networks:
+  recepia_net:
+    driver: bridge

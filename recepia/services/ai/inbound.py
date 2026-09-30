@@ -1,6 +1,8 @@
 """Persistência de conversa e resposta do agente a eventos Evolution."""
 
 import logging
+import json
+import re
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
@@ -8,9 +10,17 @@ from sqlalchemy.orm import Session
 
 from models import Clinica, Conversa, Mensagem, Paciente, WhatsAppInstance
 from services.ai.agent import generate_reply
+from services.ai.tools import ToolContext, execute_tool
 from services.whatsapp import WhatsAppService
 
 log = logging.getLogger("recepia.inbound")
+
+_SALES_INTENT = re.compile(
+    r"\b(?:quero|gostaria de|vou|preciso)\s+(?:contratar|assinar|comprar|fechar)\b"
+    r"|\b(?:como|onde)\s+(?:contrato|assino|compro)\b"
+    r"|\b(?:me passe|manda|envia)\s+(?:o\s+)?(?:link de pagamento|checkout)\b",
+    re.IGNORECASE,
+)
 
 
 def process_inbound(
@@ -82,7 +92,19 @@ def process_inbound(
     if conversa.atendimento_humano:
         return {"status": "humano"}
 
-    resposta = generate_reply(db, clinica, paciente, conversa)
+    if clinica.tipo_negocio == "RECEPIA" and _SALES_INTENT.search(texto) and not re.search(
+        r"\b(?:não|nao|nunca)\s+(?:quero|vou|preciso|gostaria de)\s+\w*\s*(?:contratar|assinar|comprar|fechar)\b",
+        texto, re.IGNORECASE,
+    ):
+        resultado = execute_tool(
+            "requestHumanSupport",
+            json.dumps({"resumo": f"Interesse explícito em contratação: {texto[:180]}"}, ensure_ascii=False),
+            ToolContext(db=db, clinica=clinica, paciente=paciente, conversa=conversa),
+        )
+        log.info("Interesse comercial encaminhado: tenant=%s aviso=%s", clinica.id, resultado.get("owner_notified"))
+        resposta = "Que bom! Vou encaminhar seu interesse ao responsável pelo Recepia para continuar por aqui. Você também pode iniciar o teste grátis de 7 dias, sem cartão: https://recepia.132-226-243-173.sslip.io/cadastro"
+    else:
+        resposta = generate_reply(db, clinica, paciente, conversa)
     envio = WhatsAppService().enviar_mensagem(instance_name, telefone, resposta)
     if not envio.get("success"):
         db.commit()  # registra AIUsage mesmo com falha do canal

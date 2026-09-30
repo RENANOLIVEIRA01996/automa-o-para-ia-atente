@@ -66,14 +66,15 @@ const ui = {
 };
 vm.createContext(ui);
 vm.runInContext(`${applySegment};applySegmentConfig()`, ui);
-assert.deepEqual(nav.items.map(item => item.dataset.tab), ['overview', 'vehicles']);
+assert.deepEqual(nav.items.filter(item => item.dataset.tab).map(item => item.dataset.tab), ['overview', 'vehicles']);
+assert.deepEqual(nav.items.filter(item => item.className === 'nav-group-label').map(item => item.textContent), ['Visão geral e agenda', 'Gestão']);
 assert.equal(field('appointment-vehicle').required, true);
 assert.equal(field('appointment-pet-field').hidden, true);
 ui.segmentConfig = {...ui.segmentConfig, name: 'Serviços pet', modules: ['pets'], business_type: 'PET',
   navigation: [{id: 'overview', label: 'Dashboard', icon: 'house', enabled: true},
     {id: 'pets', label: 'Pets', icon: 'paw-print', enabled: true}]};
 vm.runInContext('applySegmentConfig()', ui);
-assert.deepEqual(nav.items.map(item => item.dataset.tab), ['overview', 'pets']);
+assert.deepEqual(nav.items.filter(item => item.dataset.tab).map(item => item.dataset.tab), ['overview', 'pets']);
 assert.equal(field('appointment-pet').required, true);
 assert.equal(field('appointment-vehicle-field').hidden, true);
 console.log('Segment UI smoke checks passed');

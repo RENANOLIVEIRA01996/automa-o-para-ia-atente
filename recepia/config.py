@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRES_MINUTES: int = 60 * 24 * 7  # 7 dias
     ADMIN_API_KEY: str
+    # Hash PBKDF2 da senha humana do Admin Master; valor em claro nunca vai ao .env.
+    ADMIN_PANEL_PASSWORD_HASH: str = ""
 
     # Evolution API (WhatsApp self-hosted)
     EVOLUTION_API_URL: str = "http://localhost:8080"
@@ -28,6 +30,7 @@ class Settings(BaseSettings):
     # Groq (IA classificadora de respostas)
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_FALLBACK_MODEL: str = "openai/gpt-oss-20b"
 
     # Agente comercial; modelo escolhido pelo operador, sem default que possa
     # desaparecer ou deixar de oferecer tool calling.

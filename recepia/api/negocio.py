@@ -11,7 +11,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from core import audit
-from core.business_types import BUSINESS_TYPES, normalize_business_type
+from core.business_types import PUBLIC_BUSINESS_TYPES, INTERNAL_BUSINESS_TYPES, normalize_business_type
 from core.segments import get_segment_config
 from core.extra_fields import merge_extra_fields
 from core.deps import audit_context, clinica_atual, requer_clinica_ativa
@@ -109,7 +109,7 @@ class ConfiguracaoOut(ConfiguracaoIn):
 
 @router.get("/tipos")
 def tipos_negocio():
-    return sorted(BUSINESS_TYPES)
+    return sorted(PUBLIC_BUSINESS_TYPES)
 
 
 @router.get("/segmentos")
@@ -117,7 +117,7 @@ def catalogo_segmentos():
     """Business labels from the same catalog used by the panel and AI."""
     return [
         {"code": code, "name": get_segment_config(code)["name"]}
-        for code in sorted(BUSINESS_TYPES)
+        for code in sorted(PUBLIC_BUSINESS_TYPES)
     ]
 
 
@@ -140,6 +140,8 @@ def atualizar_empresa(
     db: Session = Depends(get_db_dependency),
 ):
     updates = payload.model_dump(exclude_unset=True)
+    if updates.get("tipo_negocio") in INTERNAL_BUSINESS_TYPES and clinica.tipo_negocio not in INTERNAL_BUSINESS_TYPES:
+        raise HTTPException(403, "Segmento interno indisponível para esta empresa")
     if any(
         key in updates and updates[key] is None
         for key in ("nome", "tipo_negocio", "timezone")
@@ -360,6 +362,9 @@ def indicadores(
         .count(),
         "conversas": db.query(Conversa)
         .filter(Conversa.clinica_id == clinica.id)
+        .count(),
+        "conversas_humanas": db.query(Conversa)
+        .filter(Conversa.clinica_id == clinica.id, Conversa.atendimento_humano.is_(True))
         .count(),
         "mensagens_hoje": db.query(Mensagem)
         .filter(

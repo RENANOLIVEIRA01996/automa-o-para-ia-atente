@@ -1,7 +1,9 @@
 # Env / secrets
+backups/
 .env
 .env.*
 !.env.example
+!.env.production.example
 /env (*)
 
 # Banco local

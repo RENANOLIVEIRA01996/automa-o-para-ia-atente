@@ -1,0 +1,564 @@
+/* Recepia visual system: graphite surfaces, warm copper and amber accents. */
+:root {
+  --r-base: #141210;
+  --r-sidebar: #100f0e;
+  --r-surface: #201d1a;
+  --r-surface-raised: #29241f;
+  --r-field: #171512;
+  --r-border: #40372f;
+  --r-border-soft: #342d27;
+  --r-text: #f6efe7;
+  --r-muted: #b9aca0;
+  --r-faint: #8f8278;
+  --r-copper: #e3aa79;
+  --r-copper-strong: #f2be8e;
+  --r-copper-soft: #3d2b20;
+  --r-danger: #f09a91;
+}
+
+html.recepia-saas,
+html.recepia-public,
+html.recepia-admin,
+html.recepia-legacy.dark { color-scheme: dark; }
+
+:is(html.recepia-saas, html.recepia-public, html.recepia-admin, html.recepia-legacy.dark) body {
+  color: var(--r-text);
+  background: var(--r-base);
+}
+
+:is(html.recepia-saas, html.recepia-public, html.recepia-admin, html.recepia-legacy.dark) :focus-visible {
+  outline: 2px solid var(--r-copper-strong);
+  outline-offset: 3px;
+}
+
+/* Business dashboard ----------------------------------------------------- */
+html.recepia-saas {
+  --accent: var(--r-copper);
+  --ink: var(--r-text);
+  --line: var(--r-border);
+  background: var(--r-base);
+  color: var(--r-text);
+  font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+}
+html.recepia-saas body {
+  min-height: 100vh;
+  background: radial-gradient(950px 530px at 90% -120px, #58352142, transparent 75%), var(--r-base);
+}
+html.recepia-saas .sidebar {
+  background: var(--r-sidebar);
+  border-right: 1px solid #322922;
+  scrollbar-color: #654d3c transparent;
+}
+html.recepia-saas .brand-mark {
+  color: #24170f;
+  background: linear-gradient(145deg, #f3c393, #c9875f);
+  box-shadow: 0 6px 20px #d58b5033;
+}
+html.recepia-saas .brand small,
+html.recepia-saas .sidebar-footer { color: var(--r-faint); }
+html.recepia-saas .workspace-card {
+  background: #211b17;
+  border-color: #443429;
+}
+html.recepia-saas .workspace-card span,
+html.recepia-saas .nav-group-label { color: #aa9180; }
+html.recepia-saas nav button,
+html.recepia-saas nav a { color: #ccbeb2; }
+html.recepia-saas nav button:hover:not(:disabled),
+html.recepia-saas nav a:hover { background: #2b221c; color: #fff4e7; }
+html.recepia-saas nav button.active {
+  color: #ffe6c9;
+  background: #3a291e;
+}
+html.recepia-saas nav button.active::before { background: var(--r-copper-strong); }
+html.recepia-saas .sidebar-footer span { border-top-color: var(--r-border-soft); }
+html.recepia-saas .page-eyebrow { color: var(--r-copper); }
+html.recepia-saas h1,
+html.recepia-saas h2,
+html.recepia-saas h3 { color: var(--r-text); }
+html.recepia-saas h1 { font-weight: 800; }
+html.recepia-saas .muted,
+html.recepia-saas .metric span,
+html.recepia-saas .services-intro p,
+html.recepia-saas .service-panel-head p,
+html.recepia-saas .service-item p,
+html.recepia-saas .drawer dt,
+html.recepia-saas #today { color: var(--r-muted); }
+html.recepia-saas .panel {
+  color: var(--r-text);
+  background: var(--r-surface);
+  border-color: var(--r-border);
+  box-shadow: 0 18px 44px #09080734;
+}
+html.recepia-saas .metric {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #28221e, #201d1a 70%);
+}
+html.recepia-saas .metric::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20px; right: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--r-copper), transparent);
+}
+html.recepia-saas .metric strong { color: #ffe7cc; }
+html.recepia-saas input,
+html.recepia-saas select,
+html.recepia-saas textarea {
+  color: var(--r-text);
+  background: var(--r-field);
+  border-color: #514237;
+  color-scheme: dark;
+}
+html.recepia-saas input::placeholder,
+html.recepia-saas textarea::placeholder { color: #97887b; }
+html.recepia-saas input:focus,
+html.recepia-saas select:focus,
+html.recepia-saas textarea:focus {
+  border-color: var(--r-copper);
+  outline: none;
+  box-shadow: 0 0 0 3px #e3aa792b;
+}
+html.recepia-saas input[type='checkbox'] { accent-color: var(--r-copper); }
+html.recepia-saas button.primary {
+  color: #23170f;
+  background: linear-gradient(135deg, #f2c38f, #d99b6a);
+  box-shadow: 0 7px 18px #b5764430;
+}
+html.recepia-saas button.secondary {
+  color: #f0d8bd;
+  background: #3b2d23;
+  border: 1px solid #59402e;
+}
+html.recepia-saas button.secondary:hover { background: #4a3426; }
+html.recepia-saas button.danger {
+  color: #ffb7af;
+  background: #3d2220;
+  border: 1px solid #70403a;
+}
+html.recepia-saas button.danger:hover { background: #55302b; }
+html.recepia-saas .row,
+html.recepia-saas .conversation-list button,
+html.recepia-saas .service-item,
+html.recepia-saas .service-panel-head,
+html.recepia-saas .service-toolbar { border-color: var(--r-border-soft); }
+html.recepia-saas .conversation-list button {
+  color: var(--r-text);
+  background: transparent;
+}
+html.recepia-saas .conversation-list button:hover { color: var(--r-copper-strong); }
+html.recepia-saas .bubble { color: var(--r-text); background: #302923; }
+html.recepia-saas .bubble.out { background: #4a3224; }
+html.recepia-saas .service-count,
+html.recepia-saas .service-status {
+  color: #f4d2ae;
+  background: #3b2a1d;
+}
+html.recepia-saas .service-count::before,
+html.recepia-saas .service-status::before { background: var(--r-copper); }
+html.recepia-saas .service-status.inactive { color: var(--r-muted); background: #302a26; }
+html.recepia-saas .service-status.inactive::before { background: #a29487; }
+html.recepia-saas .service-meta span {
+  color: #dfc3a9;
+  background: #302720;
+}
+html.recepia-saas .service-search input { background: var(--r-field); }
+html.recepia-saas .service-search svg { color: var(--r-muted); }
+html.recepia-saas .service-filters { background: #302923; }
+html.recepia-saas .service-filters button { color: var(--r-muted); }
+html.recepia-saas .service-filters button.active {
+  color: #ffe4c7;
+  background: #55402f;
+  box-shadow: none;
+}
+html.recepia-saas .service-actions .danger { background: transparent; border-color: transparent; }
+html.recepia-saas .service-actions .danger:hover { background: #3d2220; }
+html.recepia-saas .service-empty { color: var(--r-muted); }
+html.recepia-saas .service-empty-icon { color: var(--r-copper); background: #39291f; }
+html.recepia-saas .service-empty strong { color: var(--r-text); }
+html.recepia-saas dialog,
+html.recepia-saas .drawer {
+  color: var(--r-text);
+  background: var(--r-surface-raised);
+  border: 1px solid var(--r-border);
+  box-shadow: 0 24px 70px #080706a8;
+}
+html.recepia-saas dialog::backdrop,
+html.recepia-saas .drawer-backdrop,
+html.recepia-saas .menu-backdrop { background: #0b0909c9; }
+html.recepia-saas #notice { color: #24180f; background: #e9b789; }
+html.recepia-saas #qr { background: #fff; padding: 8px; border-color: var(--r-border); }
+html.recepia-saas .mobile-menu-button { color: var(--r-copper); background: var(--r-surface); }
+@media (max-width: 800px) {
+  html.recepia-saas .sidebar { box-shadow: 14px 0 44px #0008; }
+}
+
+/* Customer workspace ----------------------------------------------------- */
+html.recepia-saas .customer-intro {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 0 0 21px;
+  padding: 23px 26px;
+  border: 1px solid #57402d;
+  border-radius: 18px;
+  background: radial-gradient(420px 220px at 100% 0, #a86b3d30, transparent 75%), linear-gradient(110deg, #30231c, #211b17 70%);
+}
+html.recepia-saas .customer-eyebrow,
+html.recepia-saas .customer-section-label {
+  display: block;
+  color: var(--r-copper);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+html.recepia-saas .customer-intro h2 { margin: 6px 0 4px; font-size: clamp(22px,2.4vw,29px); letter-spacing: -.04em; }
+html.recepia-saas .customer-intro p { margin: 0; color: var(--r-muted); font-size: 12px; }
+html.recepia-saas .customer-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid #76533a;
+  border-radius: 999px;
+  color: #f7d7b2;
+  background: #4a3223;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+html.recepia-saas .customer-count::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--r-copper); }
+html.recepia-saas .customer-layout { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(320px,.85fr); gap: 19px; align-items: start; }
+html.recepia-saas .customer-list-panel,
+html.recepia-saas .customer-form-panel { padding: 0; overflow: hidden; }
+html.recepia-saas .customer-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 21px 23px 18px;
+  border-bottom: 1px solid var(--r-border-soft);
+}
+html.recepia-saas .customer-panel-head h3 { margin: 6px 0 0; font-size: 18px; letter-spacing: -.025em; }
+html.recepia-saas .customer-head-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #67472f;
+  border-radius: 11px;
+  color: var(--r-copper-strong);
+  background: #3e2c20;
+  font-size: 20px;
+}
+html.recepia-saas .customer-toolbar { padding: 17px 23px 18px; border-bottom: 1px solid var(--r-border-soft); }
+html.recepia-saas .customer-toolbar label { display: block; margin-bottom: 8px; color: var(--r-muted); font-size: 11px; font-weight: 700; }
+html.recepia-saas .customer-search-wrap { position: relative; }
+html.recepia-saas .customer-search-wrap span { position: absolute; top: 50%; left: 13px; transform: translateY(-55%); color: var(--r-copper); font-size: 26px; pointer-events: none; }
+html.recepia-saas .customer-search-wrap input { padding: 11px 13px 11px 39px; font-size: 12px; }
+html.recepia-saas .customer-list { max-height: 670px; overflow-y: auto; scrollbar-color: #6b4a34 transparent; }
+html.recepia-saas .customer-card { display: grid; gap: 13px; padding: 18px 23px; border-bottom: 1px solid var(--r-border-soft); transition: background .16s ease; }
+html.recepia-saas .customer-card:last-child { border-bottom: 0; }
+html.recepia-saas .customer-card:hover { background: #29221c; }
+html.recepia-saas .customer-identity { display: flex; align-items: center; gap: 13px; min-width: 0; }
+html.recepia-saas .customer-avatar { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border: 1px solid #745037; border-radius: 13px; color: #f6d4ad; background: linear-gradient(145deg,#563824,#35251c); font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+html.recepia-saas .customer-details { min-width: 0; }
+html.recepia-saas .customer-details h3 { margin: 0 0 5px; font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+html.recepia-saas .customer-meta { display: flex; flex-wrap: wrap; gap: 3px 12px; color: var(--r-muted); font-size: 11px; line-height: 1.4; }
+html.recepia-saas .customer-meta span { overflow-wrap: anywhere; }
+html.recepia-saas .customer-meta span + span::before { content: '·'; margin-right: 9px; color: var(--r-faint); }
+html.recepia-saas .customer-actions { display: flex; flex-wrap: wrap; gap: 7px; padding-left: 55px; }
+html.recepia-saas .customer-actions button { padding: 7px 10px; border-radius: 8px; font-size: 11px; }
+html.recepia-saas .customer-actions button.danger { color: #f2aca3; background: transparent; border-color: transparent; }
+html.recepia-saas .customer-actions button.danger:hover { background: #3d2220; }
+html.recepia-saas .customer-empty { padding: 60px 20px; text-align: center; }
+html.recepia-saas .customer-empty-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 13px; border-radius: 14px; color: var(--r-copper); background: #39291f; font-size: 25px; }
+html.recepia-saas .customer-empty strong { display: block; color: var(--r-text); font-size: 13px; }
+html.recepia-saas .customer-empty p { margin: 5px 0 0; color: var(--r-muted); font-size: 11px; }
+html.recepia-saas .customer-form-body { padding: 19px 23px 24px; }
+html.recepia-saas .customer-form-intro { margin: 0 0 20px; color: var(--r-muted); font-size: 12px; }
+html.recepia-saas .customer-form-group { padding: 0 0 5px; margin-bottom: 16px; border-bottom: 1px solid var(--r-border-soft); }
+html.recepia-saas .customer-form-group:last-of-type { margin-bottom: 20px; }
+html.recepia-saas .customer-form-group-title { display: flex; align-items: center; gap: 8px; margin-bottom: 13px; color: var(--r-copper); font-size: 10px; font-weight: 800; letter-spacing: .05em; }
+html.recepia-saas .customer-form-group-title strong { color: var(--r-text); font-size: 12px; letter-spacing: 0; }
+html.recepia-saas .customer-form-group .field { margin-bottom: 13px; }
+html.recepia-saas .customer-form-group label { font-size: 11px; }
+html.recepia-saas .customer-form-group label span { color: var(--r-copper-strong); }
+html.recepia-saas .customer-form-group label small { color: var(--r-faint); font-size: 10px; font-weight: 500; }
+html.recepia-saas .customer-form-group input,
+html.recepia-saas .customer-form-group textarea { font-size: 12px; }
+html.recepia-saas .customer-form-group textarea { min-height: 78px; }
+html.recepia-saas .customer-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+html.recepia-saas .customer-form-actions button { flex: 1 1 auto; font-size: 12px; }
+html.recepia-saas .customer-profile-panel { margin-top: 3px; }
+html.recepia-saas .customer-profile-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 19px; }
+html.recepia-saas .customer-profile-head h2 { margin: 6px 0 0; }
+html.recepia-saas #customer-profile-content { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 12px; }
+html.recepia-saas .customer-history-group { padding: 16px; border: 1px solid var(--r-border-soft); border-radius: 12px; background: #241f1b; }
+html.recepia-saas .customer-history-group h3 { margin: 0 0 10px; color: var(--r-copper-strong); font-size: 12px; }
+html.recepia-saas .customer-history-group p { margin: 7px 0; color: var(--r-muted); font-size: 11px; overflow-wrap: anywhere; }
+@media (max-width: 1100px) { html.recepia-saas .customer-layout { grid-template-columns: 1fr; } }
+@media (max-width: 520px) {
+  html.recepia-saas .customer-intro { padding: 19px; }
+  html.recepia-saas .customer-panel-head,
+  html.recepia-saas .customer-toolbar,
+  html.recepia-saas .customer-form-body { padding-left: 17px; padding-right: 17px; }
+  html.recepia-saas .customer-card { padding-left: 17px; padding-right: 17px; }
+  html.recepia-saas .customer-list { max-height: none; }
+  html.recepia-saas .customer-actions { padding-left: 0; }
+}
+
+/* Public pages and the admin console ------------------------------------- */
+html.recepia-public body,
+html.recepia-admin body {
+  color: var(--r-text);
+  background: radial-gradient(850px 520px at 80% -120px, #603a2638, transparent 78%), var(--r-base) !important;
+}
+html.recepia-public body::before,
+html.recepia-admin body::before { background: radial-gradient(circle, #c7835f, transparent 70%); opacity: .12; }
+html.recepia-public body::after,
+html.recepia-admin body::after { background: radial-gradient(circle, #ddaa72, transparent 70%); opacity: .10; }
+html.recepia-public .logo-dot { background: var(--r-copper); }
+html.recepia-public :is(.text-graphite, .text-ink-900),
+html.recepia-admin .text-ink-900 { color: var(--r-text) !important; }
+html.recepia-public :is(.text-graphite-soft, .text-ink-600),
+html.recepia-admin .text-ink-600 { color: var(--r-muted) !important; }
+html.recepia-public .text-graphite-muted { color: var(--r-faint) !important; }
+html.recepia-public :is(.bg-cream, .bg-cream-warm),
+html.recepia-admin .bg-cream { background-color: var(--r-base) !important; }
+html.recepia-public :is(.bg-white, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40),
+html.recepia-admin :is(.bg-white, .bg-white\/80, .bg-white\/60),
+html.recepia-public .bg-cream\/40 { background-color: var(--r-surface) !important; }
+html.recepia-public :is(.border-graphite\/10, .border-ink-100, .border-ink-100\/60),
+html.recepia-admin .border-ink-100 { border-color: var(--r-border) !important; }
+html.recepia-public :is(.ring-graphite\/5, .ring-graphite\/10, .ring-graphite\/15),
+html.recepia-admin .ring-graphite\/5 { --tw-ring-color: var(--r-border) !important; }
+html.recepia-public [class*='text-sage'],
+html.recepia-public [class*='text-emerald'],
+html.recepia-public [class*='text-blue'],
+html.recepia-admin [class*='text-sage'],
+html.recepia-admin [class*='text-emerald'],
+html.recepia-admin [class*='text-blue'] { color: var(--r-copper-strong) !important; }
+html.recepia-public [class*='bg-sage'],
+html.recepia-public [class*='bg-emerald'],
+html.recepia-public [class*='bg-blue'],
+html.recepia-admin [class*='bg-sage'],
+html.recepia-admin [class*='bg-emerald'],
+html.recepia-admin [class*='bg-blue'] { background-color: #4a3223 !important; }
+html.recepia-public [class*='ring-sage'],
+html.recepia-admin [class*='ring-sage'] { --tw-ring-color: #855d3b !important; }
+html.recepia-public [class*='border-sage'],
+html.recepia-admin [class*='border-sage'] { border-color: #855d3b !important; }
+html.recepia-public .bg-rose-soft,
+html.recepia-public .bg-rose-soft\/20,
+html.recepia-public .bg-rose-soft\/40,
+html.recepia-public .bg-rose-soft\/60 { background-color: #4b3027 !important; }
+html.recepia-public :is(.text-rose, .text-rose-deep, .text-rose-500, .text-rose-600, .text-rose-700),
+html.recepia-admin :is(.text-rose-500, .text-rose-600) { color: var(--r-copper-strong) !important; }
+html.recepia-public :is(.bg-rose-100, .bg-rose-50, .bg-rose\/20),
+html.recepia-admin :is(.bg-rose-100, .bg-rose-50) { background-color: #3d2b22 !important; }
+html.recepia-public .bg-graphite { background-color: var(--r-surface-raised) !important; }
+html.recepia-public a[href='/cadastro'].bg-graphite,
+html.recepia-public button.bg-graphite { color: #24180f !important; background: linear-gradient(135deg, #f1c08e, #d99a69) !important; }
+html.recepia-public a[href='/cadastro'].bg-graphite .text-cream { color: #24180f !important; }
+html.recepia-public :is(.text-cream, .text-white) { color: var(--r-text) !important; }
+html.recepia-public .bubble-in { color: var(--r-text); background: #2b2722; }
+html.recepia-public .bubble-out { color: #f3d4b5; background: #4a3223; }
+html.recepia-public [class*='bg-[#E5DDD4]'] { background-color: #171411 !important; }
+html.recepia-public [class*='bg-[#075E54]'] { background-color: #5b3928 !important; }
+html.recepia-public svg[stroke='#5F8C4E'],
+html.recepia-public svg[stroke='#A8E29A'] { stroke: var(--r-copper) !important; }
+html.recepia-public .grain { background-image: radial-gradient(#f4c79e12 1px, transparent 1px); }
+html.recepia-public .nicho-card.is-selected {
+  color: var(--r-text);
+  border-color: var(--r-copper);
+  background: #39271d;
+  box-shadow: 0 8px 24px #09070655;
+}
+html.recepia-public .nicho-card.is-selected .nicho-icon { color: #24180f; background: var(--r-copper); }
+html.recepia-public .check-box { background: var(--r-field); border-color: #695344; }
+html.recepia-public input[type='checkbox']:checked + .check-box { background: var(--r-copper); border-color: var(--r-copper); }
+html.recepia-public input,
+html.recepia-public select,
+html.recepia-public textarea {
+  color: var(--r-text);
+  background-color: var(--r-field);
+  border-color: #5b493a;
+  color-scheme: dark;
+}
+html.recepia-public input::placeholder,
+html.recepia-public textarea::placeholder { color: #96887d; }
+html.recepia-public input:focus,
+html.recepia-public select:focus,
+html.recepia-public textarea:focus { border-color: var(--r-copper); box-shadow: 0 0 0 3px #e3aa792a; }
+html.recepia-public .prose-recepia :is(h2, strong) { color: var(--r-text); }
+html.recepia-public .prose-recepia :is(p, ul, li) { color: var(--r-muted); }
+html.recepia-public .prose-recepia a { color: var(--r-copper-strong); }
+html.recepia-public .pill { color: var(--r-copper-strong); background: #3d2b22; }
+html.recepia-public .mark { color: #231810; background: linear-gradient(145deg, #f1c08e, #d99a69); }
+html.recepia-public p a { color: var(--r-copper-strong); }
+
+/* Public account creation ----------------------------------------------- */
+html.recepia-signup .signup-hero {
+  background: radial-gradient(620px 310px at 50% 35%, #633d292d, transparent 80%);
+}
+html.recepia-signup .signup-hero h1 { color: var(--r-text); letter-spacing: -.055em; }
+html.recepia-signup .signup-hero h1 span { color: var(--r-copper-strong) !important; }
+html.recepia-signup .signup-hero > div:last-child > span:first-child {
+  color: #f5cfaa !important;
+  border: 1px solid #65442e;
+  background: #36261c !important;
+}
+html.recepia-signup .signup-hero > div:last-child > span:first-child > span { background: var(--r-copper) !important; }
+html.recepia-signup .signup-hero > div:last-child > div:last-child {
+  color: #e8c9aa !important;
+  background: #34251c !important;
+  border: 1px solid #644631;
+}
+html.recepia-signup .signup-layout { display: grid; grid-template-columns: minmax(240px,310px) minmax(0,1fr); align-items: start; gap: 20px; }
+html.recepia-signup .signup-side {
+  position: sticky;
+  top: 22px;
+  padding: 28px 27px;
+  border: 1px solid #604631;
+  border-radius: 23px;
+  color: var(--r-text);
+  background: radial-gradient(270px 230px at 100% 0,#9b623d37,transparent 75%),linear-gradient(145deg,#31231c,#211a16);
+  box-shadow: 0 22px 52px #09070644;
+}
+html.recepia-signup .signup-side-eyebrow,
+html.recepia-signup .signup-form-head > span { color: var(--r-copper-strong); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+html.recepia-signup .signup-side h2 { margin: 15px 0 11px; font-family: 'Fraunces',Georgia,serif; font-size: 29px; line-height: 1.12; letter-spacing: -.035em; }
+html.recepia-signup .signup-side h2 em { color: #efbf92; font-weight: 400; }
+html.recepia-signup .signup-side > p { margin: 0; color: #c9b7a6; font-size: 12px; line-height: 1.65; }
+html.recepia-signup .signup-steps { display: grid; gap: 20px; margin: 29px 0; padding: 26px 0; border-top: 1px solid #604631; border-bottom: 1px solid #604631; list-style: none; }
+html.recepia-signup .signup-steps li { display: flex; gap: 12px; }
+html.recepia-signup .signup-steps li > span { display: grid; place-items: center; flex: none; width: 31px; height: 31px; border: 1px solid #8c6244; border-radius: 9px; color: #f5c896; background: #503423; font-size: 10px; font-weight: 800; }
+html.recepia-signup .signup-steps strong,
+html.recepia-signup .signup-side-note strong { display: block; color: #fff2e4; font-size: 12px; }
+html.recepia-signup .signup-steps small,
+html.recepia-signup .signup-side-note small { display: block; margin-top: 4px; color: #c0aa99; font-size: 10px; line-height: 1.5; }
+html.recepia-signup .signup-side-note { display: flex; gap: 11px; padding: 14px; border: 1px solid #76513a; border-radius: 13px; background: #463020; }
+html.recepia-signup .signup-side-note > span { color: #f3be88; font-size: 19px; line-height: 1; }
+html.recepia-signup #signup-form { padding: 30px; border: 1px solid var(--r-border); border-radius: 23px; background: var(--r-surface) !important; box-shadow: 0 22px 52px #09070644; }
+html.recepia-signup .signup-form-head { padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--r-border-soft); }
+html.recepia-signup .signup-form-head h2 { margin: 9px 0 4px; color: var(--r-text); font-family: 'Fraunces',Georgia,serif; font-size: 29px; line-height: 1.2; }
+html.recepia-signup .signup-form-head p { margin: 0; color: var(--r-muted); font-size: 12px; }
+html.recepia-signup #signup-form fieldset legend { color: var(--r-text) !important; font-size: 14px; }
+html.recepia-signup #signup-form [role='radiogroup'] { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+html.recepia-signup #signup-form .nicho-card { min-width: 0; padding: 14px 9px; border-width: 1px; border-color: #554135 !important; border-radius: 14px; color: var(--r-text); background: #28211c !important; text-align: left; transition: border-color .16s,background .16s,transform .16s; }
+html.recepia-signup #signup-form .nicho-card:hover { border-color: #b67f55 !important; background: #37291f !important; transform: translateY(-2px); }
+html.recepia-signup #signup-form .nicho-card:focus-within { outline: 2px solid var(--r-copper-strong); outline-offset: 2px; }
+html.recepia-signup #signup-form .nicho-card.is-selected { border-color: var(--r-copper-strong) !important; background: #493120 !important; box-shadow: inset 0 0 0 1px #e3aa7947,0 8px 24px #09070650; }
+html.recepia-signup #signup-form .nicho-icon { width: 34px; height: 34px; margin: 0 0 11px; border-radius: 9px; color: #e9ba8e !important; background: #493020 !important; }
+html.recepia-signup #signup-form .nicho-card.is-selected .nicho-icon { color: #24170f !important; background: var(--r-copper) !important; }
+html.recepia-signup #signup-form .nicho-card > .font-semibold { font-size: 11px; line-height: 1.3; }
+html.recepia-signup #signup-form .nicho-card > .text-\[11px\] { font-size: 10px; line-height: 1.3; }
+html.recepia-signup #signup-form .field label { color: var(--r-text) !important; font-size: 12px; }
+html.recepia-signup #signup-form .field input { min-height: 46px; border-width: 1px; border-color: #604a39 !important; border-radius: 11px; background: var(--r-field) !important; font-size: 13px; }
+html.recepia-signup #signup-form .field input:focus { border-color: var(--r-copper) !important; box-shadow: 0 0 0 3px #e3aa792a; }
+html.recepia-signup #signup-form .check-box { border-color: #88634a; }
+html.recepia-signup #signup-form input[type='checkbox']:checked + .check-box { background: var(--r-copper); border-color: var(--r-copper); }
+html.recepia-signup #signup-form input[type='checkbox']:checked + .check-box svg { stroke: #24170f; }
+html.recepia-signup #signup-form #submit-btn { border-radius: 12px; color: #24180f !important; background: linear-gradient(135deg,#f2c38f,#d99b6a) !important; box-shadow: 0 10px 25px #ad6d3e36; }
+html.recepia-signup #signup-form #submit-btn:hover:not(:disabled) { filter: brightness(1.06); }
+html.recepia-signup #signup-form #submit-btn:disabled { opacity: .45; box-shadow: none; }
+html.recepia-signup #signup-form #erro-box { color: #ffcfbf; border: 1px solid #804538; background: #402823 !important; }
+@media (max-width: 940px) {
+  html.recepia-signup .signup-layout { grid-template-columns: 1fr; max-width: 780px; margin: 0 auto; }
+  html.recepia-signup .signup-side { position: static; }
+  html.recepia-signup .signup-steps { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+}
+@media (max-width: 640px) {
+  html.recepia-signup .signup-hero { padding-bottom: 27px; }
+  html.recepia-signup .signup-hero h1 { font-size: clamp(36px,10vw,47px); }
+  html.recepia-signup .signup-side { display: none; }
+  html.recepia-signup #signup-form { padding: 22px 18px; border-radius: 18px; }
+  html.recepia-signup #signup-form [role='radiogroup'] { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+html.recepia-admin .glass-d {
+  color: var(--r-text);
+  background: #211d1acc;
+  border-color: var(--r-border);
+  box-shadow: 0 16px 42px #08070655;
+}
+html.recepia-admin .glass-row:hover { background: #47302066; }
+html.recepia-admin .field {
+  color: var(--r-text);
+  background: var(--r-field);
+  border-color: #5b493a;
+  color-scheme: dark;
+}
+html.recepia-admin .field:focus { background: #231d18; border-color: var(--r-copper); box-shadow: 0 0 0 3px #e3aa792a; }
+html.recepia-admin .field::placeholder { color: #96887d; }
+html.recepia-admin .lbl { color: var(--r-muted); }
+html.recepia-admin .btn-primary,
+html.recepia-admin .btn-success {
+  color: #24180f;
+  background: linear-gradient(135deg, #f1c08e, #d99a69);
+}
+html.recepia-admin .btn-ghost { color: var(--r-text); background: #36291f; }
+html.recepia-admin .btn-ghost:hover { background: #4a3627; }
+html.recepia-admin :is(.badge-trial, .badge-essencial, .badge-pro, .badge-enterprise, .badge-ativo) {
+  color: #f4d5b6;
+  background: #473020;
+}
+html.recepia-admin .badge-inativo { color: #ffb0aa; background: #462621; }
+html.recepia-admin .tab-btn { color: var(--r-muted); }
+html.recepia-admin .tab-btn.active { color: var(--r-copper-strong); background: #473020; }
+html.recepia-admin select.field option { color: var(--r-text); background: var(--r-surface); }
+html.recepia-admin input:-webkit-autofill { -webkit-text-fill-color: var(--r-text); -webkit-box-shadow: 0 0 0 1000px var(--r-field) inset; }
+
+/* Legacy clinical dashboard. Its light toggle remains available. -------- */
+html.recepia-legacy.dark body { background: var(--r-base); color: var(--r-text); }
+html.recepia-legacy.dark body::before { background: radial-gradient(circle, #b77b59, transparent 70%); opacity: .12; }
+html.recepia-legacy.dark body::after { background: radial-gradient(circle, #d09b66, transparent 70%); opacity: .10; }
+html.recepia-legacy.dark :is(.glass, .bg-white, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-cream) {
+  color: var(--r-text);
+  background: var(--r-surface) !important;
+  border-color: var(--r-border);
+}
+html.recepia-legacy.dark .glass-dark,
+html.recepia-legacy.dark #sidebar.glass-dark { background: #100f0ef0; border-color: var(--r-border-soft); }
+html.recepia-legacy.dark :is(.bg-ink-50, .bg-ink-100, .bg-ink-100\/60, .bg-ink-100\/40) { background: var(--r-surface-raised) !important; }
+html.recepia-legacy.dark :is(.text-ink-900, .text-ink-800, .text-ink-700) { color: var(--r-text) !important; }
+html.recepia-legacy.dark .text-ink-600 { color: var(--r-muted) !important; }
+html.recepia-legacy.dark .text-ink-300 { color: var(--r-faint) !important; }
+html.recepia-legacy.dark .btn-primary,
+html.recepia-legacy.dark .btn-accent { color: #24180f; background: linear-gradient(135deg, #f1c08e, #d99a69); }
+html.recepia-legacy.dark .btn-ghost { color: var(--r-text); background: #382b22; }
+html.recepia-legacy.dark .field,
+html.recepia-legacy.dark input,
+html.recepia-legacy.dark select,
+html.recepia-legacy.dark textarea { color: var(--r-text); background-color: var(--r-field); color-scheme: dark; }
+html.recepia-legacy.dark .field:focus { border-color: var(--r-copper); box-shadow: 0 0 0 3px #e3aa792a; }
+html.recepia-legacy.dark .field::placeholder { color: #96887d; }
+html.recepia-legacy.dark select.field option { color: var(--r-text); background: var(--r-surface); }
+html.recepia-legacy.dark .badge-confirmado,
+html.recepia-legacy.dark .badge-realizado,
+html.recepia-legacy.dark .pt-badge.concluido { color: #f4d2ae; background: #3d2b20; }
+html.recepia-legacy.dark .agenda-week-header { background: #181512ed; }
+html.recepia-legacy.dark .agenda-day-head.today,
+html.recepia-legacy.dark .agenda-mini-cal-day.today { color: #f2c18f; background: #493020; }
+html.recepia-legacy.dark .agenda-month-appt { color: #f5d8bb; background: #563923; }
+html.recepia-legacy [class*='text-sage'],
+html.recepia-legacy [class*='text-emerald'],
+html.recepia-legacy [class*='text-blue'] { color: var(--r-copper-strong) !important; }
+html.recepia-legacy [class*='bg-sage'],
+html.recepia-legacy [class*='bg-emerald'],
+html.recepia-legacy [class*='bg-blue'] { background-color: #493020 !important; }
+html.recepia-legacy.dark :is(.text-rose-700, .text-rose-600, .text-rose-500) { color: var(--r-copper-strong) !important; }
+html.recepia-legacy.dark :is(.bg-rose-50, .bg-rose-100) { background-color: #3d2b22 !important; }
+html.recepia-legacy.dark :is(.border-ink-100, .border-ink-100\/60, .border-ink-900\/10) { border-color: var(--r-border) !important; }
+html.recepia-legacy.dark input:-webkit-autofill { -webkit-text-fill-color: var(--r-text); -webkit-box-shadow: 0 0 0 1000px var(--r-field) inset; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(html.recepia-saas, html.recepia-public, html.recepia-admin) *,
+  html.recepia-legacy.dark * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
