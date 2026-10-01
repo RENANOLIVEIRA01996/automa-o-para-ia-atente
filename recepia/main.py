@@ -10,7 +10,7 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -173,6 +173,31 @@ if LANDING_DIR.exists():
 # servidas. Referenciado por caminho absoluto (/recepia.tailwind.css) tanto na
 # landing (raiz) quanto no dashboard (mount /dashboard).
 STATIC_DIR = BASE_DIR / "static"
+
+@app.get("/media/recepia-apresentacao.mp4", include_in_schema=False)
+def presentation_video():
+    """Serve somente o vídeo institucional, sem expor outros arquivos do servidor."""
+    from fastapi.responses import FileResponse
+    from services.presentation import VIDEO_PATH, video_available
+
+    if not video_available():
+        raise HTTPException(status_code=404, detail="Vídeo indisponível")
+    return FileResponse(
+        VIDEO_PATH, media_type="video/mp4", filename="recepia-apresentacao.mp4",
+        content_disposition_type="inline", headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.head("/media/recepia-apresentacao.mp4", include_in_schema=False)
+def presentation_video_head():
+    from services.presentation import VIDEO_PATH, video_available
+
+    if not video_available():
+        raise HTTPException(status_code=404, detail="Vídeo indisponível")
+    return Response(media_type="video/mp4", headers={
+        "Content-Length": str(VIDEO_PATH.stat().st_size),
+        "Cache-Control": "public, max-age=3600",
+    })
 
 @app.get("/recepia.tailwind.css", include_in_schema=False)
 def tailwind_css():

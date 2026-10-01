@@ -132,10 +132,13 @@ class ConfiguracaoNegocio(Base):
     clinica_id = Column(String, ForeignKey("clinicas.id", ondelete="CASCADE"), unique=True, nullable=False)
     descricao = Column(Text)
     instrucoes_ia = Column(Text)
+    video_apresentacao_ativo = Column(Boolean, default=True, nullable=False)
+    video_apresentacao_texto = Column(Text)
     politica_cancelamento = Column(Text)
     regras_agendamento = Column(Text)
     mensagem_boas_vindas = Column(Text)
     telefone_suporte_humano = Column(String(30))
+    retorno_ia_apos_minutos = Column(Integer)
     criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
     atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -731,6 +734,7 @@ class Conversa(Base):
     paciente_id = Column(String, ForeignKey("pacientes.id", ondelete="CASCADE"), nullable=False)
     canal = Column(String(20), default="WHATSAPP", nullable=False)
     atendimento_humano = Column(Boolean, default=False, nullable=False)
+    atendimento_humano_atividade_em = Column(DateTime)
     ultima_mensagem_em = Column(DateTime, default=datetime.utcnow, nullable=False)
     criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
 

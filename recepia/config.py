@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://recepia:recepia@localhost:5432/recepia"
     APP_URL: str = "http://localhost:8000"
+    PUBLIC_BASE_URL: str = ""
+    DOMAIN: str = ""
 
     # Auth — SEM defaults seguros. Pydantic falha boot se não vier do .env.
     JWT_SECRET: str

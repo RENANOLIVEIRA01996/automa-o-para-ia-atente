@@ -39,6 +39,8 @@ class ToolContext:
     clinica: Clinica
     paciente: Paciente
     conversa: Conversa
+    presentation_attempted: bool = False
+    allow_handoff: bool = True
 
 
 class Empty(BaseModel):
@@ -124,6 +126,7 @@ SCHEMAS: dict[str, tuple[type[BaseModel], str]] = {
     "rescheduleAppointment": (RescheduleIn, "Remarca um agendamento deste cliente"),
     "cancelAppointment": (AppointmentId, "Cancela um agendamento deste cliente"),
     "requestHumanSupport": (HumanSupportIn, "Transfere a conversa para atendimento humano. Para vendas, informe um resumo breve do interesse."),
+    "sendRecepiaPresentation": (Empty, "Envia o vídeo institucional oficial do Recepia quando o cliente deseja conhecer ou ver uma demonstração do sistema."),
     "listCustomerVehicles": (Empty, "Lista os veículos cadastrados deste cliente"),
     "registerVehicle": (RegisterVehicleIn, "Cadastra o veículo deste cliente pela placa"),
     "listCustomerPets": (Empty, "Lista pets deste tutor"),
@@ -155,7 +158,8 @@ def tool_definitions(business_type: str | None = None) -> list[dict]:
         and (name not in pet_tools or business_type == "PET")
         and (name not in hotel_tools or business_type == "HOTEL")
         and (name not in appointment_tools or business_type != "HOTEL")
-        and (business_type != "RECEPIA" or name in {"getBusinessInfo", "requestHumanSupport"})
+        and (business_type == "RECEPIA" or name != "sendRecepiaPresentation")
+        and (business_type != "RECEPIA" or name in {"getBusinessInfo", "requestHumanSupport", "sendRecepiaPresentation"})
     ]
 
 
@@ -199,6 +203,8 @@ def _appointment_data(item: Agendamento) -> dict:
 
 
 def execute_tool(name: str, raw_arguments: str, ctx: ToolContext) -> dict:
+    if name == "requestHumanSupport" and not ctx.allow_handoff:
+        return {"error": "Atendimento por IA solicitado pelo cliente"}
     if name not in {tool["function"]["name"] for tool in tool_definitions(ctx.clinica.tipo_negocio)}:
         return {"error": "Ferramenta não permitida"}
     schema = SCHEMAS[name][0]
@@ -209,6 +215,12 @@ def execute_tool(name: str, raw_arguments: str, ctx: ToolContext) -> dict:
 
     db = ctx.db
     tenant = ctx.clinica
+    if name == "sendRecepiaPresentation":
+        if ctx.presentation_attempted:
+            return {"success": False, "reason": "already_attempted"}
+        ctx.presentation_attempted = True
+        from services.presentation import send_presentation_video
+        return send_presentation_video(db, tenant, ctx.paciente, ctx.conversa)
     if name == "getBusinessInfo":
         config = (
             db.query(ConfiguracaoNegocio)
@@ -566,6 +578,7 @@ def execute_tool(name: str, raw_arguments: str, ctx: ToolContext) -> dict:
     if ctx.conversa.atendimento_humano:
         return {"success": True, "human_takeover": True, "already_human": True}
     ctx.conversa.atendimento_humano = True
+    ctx.conversa.atendimento_humano_atividade_em = datetime.utcnow()
     db.commit()
     if tenant.tipo_negocio != "RECEPIA":
         return {"success": True, "human_takeover": True}

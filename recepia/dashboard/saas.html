@@ -119,6 +119,8 @@
     .messages { min-height: 260px; max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .bubble { max-width: 86%; padding: 10px 13px; border-radius: 12px; background: #edf1f0; white-space: pre-wrap; overflow-wrap: anywhere; }
     .bubble.out { background: #d9f1e9; align-self: flex-end; }
+    .conversation-mode { padding: 11px 13px; border-radius: 9px; margin: 12px 0; font-weight: 700; background: #e7f5ef; color: #18684f; }
+    .conversation-mode.human { background: #fff1dc; color: #80520e; }
     .hidden { display: none !important; }
     [hidden] { display: none !important; }
     #notice { position: fixed; bottom: 18px; right: 18px; z-index: 10; padding: 12px 18px; background: #102b31; color: white; border-radius: 10px; max-width: 360px; box-shadow: 0 8px 30px #1237; }
@@ -147,8 +149,8 @@
     <section id="conversations" class="hidden">
       <div class="grid">
         <div class="panel"><h2>Conversas recentes</h2><div id="conversation-list" class="conversation-list"></div></div>
-        <div class="panel"><h2 id="conversation-title">Selecione uma conversa</h2><div id="messages" class="messages"></div>
-          <div class="stack" style="margin:16px 0"><button id="takeover" class="secondary hidden">Assumir atendimento</button><button id="return-ai" class="secondary hidden">Devolver para IA</button></div>
+        <div class="panel"><h2 id="conversation-title">Selecione uma conversa</h2><div id="conversation-mode" class="conversation-mode hidden" role="status" aria-live="polite"></div><div id="messages" class="messages"></div>
+          <div class="stack" style="margin:16px 0"><button id="takeover" class="secondary hidden" type="button">Assumir atendimento</button><button id="return-ai" class="primary hidden" type="button">🤖 Reativar IA</button></div>
           <form id="reply-form" class="hidden"><div class="field"><label for="reply">Responder pelo WhatsApp</label><textarea id="reply" required maxlength="4000"></textarea></div><button class="primary">Enviar resposta</button></form>
         </div>
       </div>
@@ -236,6 +238,15 @@
           <div class="field"><label for="settings-rules">Regras de agendamento</label><textarea id="settings-rules"></textarea></div>
           <div class="field"><label for="settings-cancellation">Política de cancelamento</label><textarea id="settings-cancellation"></textarea></div>
           <div class="field"><label for="settings-support">Telefone do suporte humano</label><input id="settings-support"></div>
+          <div class="field"><label for="settings-ai-return">Retomar IA na próxima mensagem após X minutos sem resposta humana</label><input id="settings-ai-return" type="number" min="1" max="1440" step="1" placeholder="Desativado"><small class="muted">Deixe vazio para manter a IA pausada até o cliente pedir ou alguém reativar no painel.</small></div>
+          <div id="presentation-settings" class="hidden">
+            <h2>Vídeo de apresentação</h2>
+            <div class="field"><label for="presentation-enabled"><input id="presentation-enabled" type="checkbox" style="width:auto"> Enviar automaticamente quando a pessoa quiser conhecer o Recepia</label></div>
+            <div class="field"><label for="presentation-url">URL pública do vídeo</label><input id="presentation-url" readonly></div>
+            <div class="field"><label for="presentation-caption">Texto da legenda</label><textarea id="presentation-caption" maxlength="600" placeholder="Recepia 🤖 — Enquanto você trabalha, nossa IA ajuda a atender seus clientes..."></textarea></div>
+            <button id="presentation-test-copy" type="button" class="secondary">Copiar mensagem de teste</button>
+            <p class="muted">Para testar, envie “Tem vídeo de apresentação?” ao WhatsApp conectado. O envio é limitado a uma vez por conversa a cada 12 horas, salvo pedido explícito de reenvio.</p>
+          </div>
           <button class="primary">Salvar configurações</button>
         </form>
       </div>
@@ -423,6 +434,11 @@ async function loadBusiness() {
   fillExtraFields('business',b.campos_extras);
   $('settings-description').value=c?.descricao||''; $('settings-instructions').value=c?.instrucoes_ia||'';
   $('settings-rules').value=c?.regras_agendamento||''; $('settings-cancellation').value=c?.politica_cancelamento||''; $('settings-support').value=c?.telefone_suporte_humano||'';
+  $('settings-ai-return').value=c?.retorno_ia_apos_minutos??'';
+  $('presentation-settings').classList.toggle('hidden',b.tipo_negocio!=='RECEPIA');
+  $('presentation-enabled').checked=c?.video_apresentacao_ativo??true;
+  $('presentation-url').value=`${location.origin}/media/recepia-apresentacao.mp4`;
+  $('presentation-caption').value=c?.video_apresentacao_texto||'';
   return b;
 }
 async function loadServices() {
@@ -690,10 +706,12 @@ async function refreshAgenda() {
 }
 async function loadConversations() {
   const rows=await api('/api/conversas');
-  $('conversation-list').replaceChildren(...rows.map(c=>{const b=document.createElement('button');b.textContent=`${c.cliente} · ${c.telefone}${c.atendimento_humano?' · humano':''}`;b.onclick=()=>openConversation(c.id,c.cliente);return b;}));
+  $('conversation-list').replaceChildren(...rows.map(c=>{const b=document.createElement('button');b.textContent=`${c.cliente} · ${c.telefone} · ${c.atendimento_humano?'👤 Humano':'🤖 IA'}`;b.onclick=()=>openConversation(c.id,c.cliente);return b;}));
 }
 async function openConversation(id,name) {
   selectedConversation=id;const c=await api(`/api/conversas/${id}`);$('conversation-title').textContent=name;
+  $('conversation-mode').textContent=c.atendimento_humano?'👤 Atendimento humano ativo — IA pausada':'🤖 Atendimento por IA ativo';
+  $('conversation-mode').classList.toggle('human',c.atendimento_humano);$('conversation-mode').classList.remove('hidden');
   $('messages').replaceChildren(...c.mensagens.map(m=>{const p=document.createElement('div');p.className='bubble'+(m.direcao==='OUT'?' out':'');p.textContent=m.conteudo;return p;}));
   $('messages').scrollTop=$('messages').scrollHeight;$('takeover').classList.toggle('hidden',c.atendimento_humano);$('return-ai').classList.toggle('hidden',!c.atendimento_humano);$('reply-form').classList.remove('hidden');
 }
@@ -731,7 +749,8 @@ async function showTab(tab) {
   } catch(e) { notice(e.message); }
 }
 $('business-form').onsubmit=async e=>{e.preventDefault();const body={nome:$('business-name').value,tipo_negocio:$('business-type').value,telefone:$('business-phone').value||null,email:$('business-email').value||null,timezone:$('business-timezone').value,endereco_rua:$('business-street').value||null,endereco_numero:$('business-number').value||null,endereco_cidade:$('business-city').value||null,endereco_uf:$('business-state').value||null,endereco_cep:$('business-zip').value||null};if(body.tipo_negocio===segmentConfig?.business_type)body.campos_extras=extraFieldValues('business');try{await api('/api/negocio',{method:'PATCH',body:JSON.stringify(body)});await loadSegmentConfig();await loadBusiness();notice('Empresa salva');}catch(err){notice(err.message);}};
-$('settings-form').onsubmit=async e=>{e.preventDefault();try{await api('/api/negocio/configuracao',{method:'PATCH',body:JSON.stringify({descricao:$('settings-description').value,instrucoes_ia:$('settings-instructions').value,regras_agendamento:$('settings-rules').value,politica_cancelamento:$('settings-cancellation').value,telefone_suporte_humano:$('settings-support').value})});notice('Configurações salvas');}catch(err){notice(err.message);}};
+$('settings-form').onsubmit=async e=>{e.preventDefault();const body={descricao:$('settings-description').value,instrucoes_ia:$('settings-instructions').value,regras_agendamento:$('settings-rules').value,politica_cancelamento:$('settings-cancellation').value,telefone_suporte_humano:$('settings-support').value,retorno_ia_apos_minutos:$('settings-ai-return').value?Number($('settings-ai-return').value):null};if(segmentConfig?.business_type==='RECEPIA'){body.video_apresentacao_ativo=$('presentation-enabled').checked;body.video_apresentacao_texto=$('presentation-caption').value.trim()||null;}try{await api('/api/negocio/configuracao',{method:'PATCH',body:JSON.stringify(body)});notice('Configurações salvas');}catch(err){notice(err.message);}};
+$('presentation-test-copy').onclick=async()=>{try{await navigator.clipboard.writeText('Tem vídeo de apresentação?');notice('Mensagem copiada. Envie-a ao WhatsApp conectado para testar.');}catch(_){notice('Envie ao WhatsApp conectado: Tem vídeo de apresentação?');}};
 $('service-form').onsubmit=async e=>{e.preventDefault();try{const body={nome:$('service-name').value.trim(),descricao:$('service-description').value,preco:$('service-price').value||null,duracao_minutos:serviceDurationMinutes()};if(!body.nome)throw new Error('Informe o nome do serviço.');if(body.preco!==null&&Number(body.preco)<0)throw new Error('O preço não pode ser negativo.');if(editingService)body.ativo=$('service-active').checked;await api(editingService?`/api/procedimentos/${editingService}`:'/api/procedimentos',{method:editingService?'PUT':'POST',body:JSON.stringify(body)});resetService();await loadServices();notice('Serviço salvo');}catch(err){notice(err.message);}};
 $('service-cancel').onclick=resetService;
 $('customer-form').onsubmit=async e=>{e.preventDefault();const body={nome:$('customer-name').value,telefone:$('customer-phone').value,email:$('customer-email').value||null,notas:$('customer-notes').value||null,campos_extras:extraFieldValues('customer')};try{await api(editingCustomer?`/api/pacientes/${editingCustomer}`:'/api/pacientes',{method:editingCustomer?'PUT':'POST',body:JSON.stringify(body)});resetCustomer();await loadCustomers();notice('Cliente salvo');}catch(error){notice(error.message);}};
@@ -744,8 +763,8 @@ $('agenda-view').onchange=()=>refreshAgenda().catch(error=>notice(error.message)
 $('appointment-form').onsubmit=async e=>{e.preventDefault();const body=editingAppointment?{data_hora:$('appointment-date').value,procedimento_id:$('appointment-service').value,profissional_id:$('appointment-professional').value||null}:{paciente_id:$('appointment-customer').value,procedimento_id:$('appointment-service').value,data_hora:$('appointment-date').value,profissional_id:$('appointment-professional').value||null,origem:'PANEL'};body.campos_extras=extraFieldValues('appointment');if(segmentConfig?.modules.includes('vehicles'))body.veiculo_id=$('appointment-vehicle').value||null;if(segmentConfig?.modules.includes('pets'))body.pet_id=$('appointment-pet').value||null;try{await api(editingAppointment?`/api/agendamentos/${editingAppointment}`:'/api/agendamentos',{method:editingAppointment?'PUT':'POST',body:JSON.stringify(body)});resetAppointment();await refreshAgenda();notice('Agendamento salvo');}catch(error){notice(error.message);}};
 $('appointment-cancel-edit').onclick=resetAppointment;
 $('block-form').onsubmit=async e=>{e.preventDefault();const body={inicio:$('block-start').value,fim:$('block-end').value,motivo:$('block-reason').value,profissional_id:$('block-professional').value||null};try{await api('/api/bloqueios',{method:'POST',body:JSON.stringify(body)});$('block-form').reset();await refreshAgenda();notice('Período bloqueado');}catch(error){notice(error.message);}};
-$('takeover').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/assumir`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);}catch(e){notice(e.message);}};
-$('return-ai').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/devolver`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);}catch(e){notice(e.message);}};
+$('takeover').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/assumir`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);await loadConversations();notice('Atendimento humano ativado. IA pausada.');}catch(e){notice(e.message);}};
+$('return-ai').onclick=async()=>{if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/devolver`,{method:'POST'});await openConversation(selectedConversation,$('conversation-title').textContent);await loadConversations();notice('IA reativada. As próximas mensagens receberão resposta automática.');}catch(e){notice(e.message);}};
 $('reply-form').onsubmit=async e=>{e.preventDefault();if(!selectedConversation)return;try{await api(`/api/conversas/${selectedConversation}/responder`,{method:'POST',body:JSON.stringify({texto:$('reply').value})});$('reply').value='';await openConversation(selectedConversation,$('conversation-title').textContent);notice('Mensagem enviada');}catch(err){notice(err.message);}};
 $('connect').onclick=async()=>{try{const c=await api('/api/whatsapp/conectar',{method:'POST'});if(c.qrcode_base64){$('qr').src=c.qrcode_base64.startsWith('data:')?c.qrcode_base64:`data:image/png;base64,${c.qrcode_base64}`;$('qr').classList.remove('hidden');$('whatsapp-status').textContent='AGUARDANDO_QR';}else{notice('Instância conectada ou QR indisponível');} }catch(e){notice(e.message);}};
 $('disconnect').onclick=async()=>{try{await api('/api/whatsapp/desconectar',{method:'POST'});$('qr').classList.add('hidden');await loadWhatsapp();}catch(e){notice(e.message);}};

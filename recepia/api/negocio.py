@@ -93,10 +93,13 @@ class EmpresaOut(BaseModel):
 class ConfiguracaoIn(BaseModel):
     descricao: str | None = Field(None, max_length=5000)
     instrucoes_ia: str | None = Field(None, max_length=10000)
+    video_apresentacao_ativo: bool | None = None
+    video_apresentacao_texto: str | None = Field(None, max_length=600)
     politica_cancelamento: str | None = Field(None, max_length=5000)
     regras_agendamento: str | None = Field(None, max_length=5000)
     mensagem_boas_vindas: str | None = Field(None, max_length=2000)
     telefone_suporte_humano: str | None = Field(None, max_length=30)
+    retorno_ia_apos_minutos: int | None = Field(None, ge=1, le=1440)
 
 
 class ConfiguracaoOut(ConfiguracaoIn):
@@ -213,6 +216,10 @@ def atualizar_configuracao(
         config = ConfiguracaoNegocio(clinica_id=clinica.id)
         db.add(config)
     updates = payload.model_dump(exclude_unset=True)
+    if "video_apresentacao_ativo" in updates and updates["video_apresentacao_ativo"] is None:
+        raise HTTPException(422, "Envio do vídeo deve estar habilitado ou desabilitado")
+    if any(key.startswith("video_apresentacao_") for key in updates) and clinica.tipo_negocio != "RECEPIA":
+        raise HTTPException(403, "Vídeo institucional disponível apenas para o Recepia")
     for key, value in updates.items():
         setattr(config, key, value)
     db.flush()

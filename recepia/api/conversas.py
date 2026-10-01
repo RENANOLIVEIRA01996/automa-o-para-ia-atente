@@ -97,6 +97,7 @@ def assumir(
 ):
     item = _conversa(db, clinica.id, conversa_id)
     item.atendimento_humano = True
+    item.atendimento_humano_atividade_em = datetime.utcnow()
     db.commit()
     return {"atendimento_humano": True}
 
@@ -109,6 +110,7 @@ def devolver(
 ):
     item = _conversa(db, clinica.id, conversa_id)
     item.atendimento_humano = False
+    item.atendimento_humano_atividade_em = None
     db.commit()
     return {"atendimento_humano": False}
 
@@ -143,6 +145,7 @@ def responder(
     if not envio.get("success"):
         raise HTTPException(502, "Falha ao enviar mensagem")
     item.atendimento_humano = True
+    item.atendimento_humano_atividade_em = datetime.utcnow()
     item.ultima_mensagem_em = datetime.utcnow()
     db.add(
         Mensagem(

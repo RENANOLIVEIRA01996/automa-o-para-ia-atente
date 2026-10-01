@@ -114,6 +114,27 @@ class WhatsAppService:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def enviar_video(self, instance_name: str, telefone: str, media_url: str, caption: str) -> dict:
+        """Envia MP4 por URL pública usando o sendMedia da Evolution existente."""
+        telefone = "".join(c for c in telefone if c.isdigit())
+        url = f"{self.base_url}/message/sendMedia/{instance_name}"
+        payload = {
+            "number": telefone,
+            "mediatype": "video",
+            "mimetype": "video/mp4",
+            "media": media_url,
+            "fileName": "recepia-apresentacao.mp4",
+            "caption": caption,
+        }
+        try:
+            with httpx.Client(timeout=90) as client:
+                resp = client.post(url, json=payload, headers=self._headers())
+                if resp.status_code in (200, 201):
+                    return {"success": True, "data": resp.json()}
+                return {"success": False, "status": resp.status_code}
+        except (httpx.HTTPError, ValueError):
+            return {"success": False, "status": "network_error"}
+
     # ------------------------------------------------------------------ webhook
 
     def configurar_webhook(self, instance_name: str, url_webhook: str) -> dict:

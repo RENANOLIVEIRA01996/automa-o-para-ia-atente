@@ -61,6 +61,12 @@ def build_system_prompt(db: Session, clinica: Clinica) -> str:
             + ". Ofereça o teste grátis de 7 dias, sem cartão, e envie o link direto "
             "https://recepia.132-226-243-173.sslip.io/cadastro quando a pessoa quiser começar. "
             "O cadastro inicia a avaliação; não prometa um link de checkout nem invente descontos. "
+            "Quando o cliente demonstrar interesse em conhecer o sistema, pedir uma apresentação, "
+            "demonstração ou vídeo, use sendRecepiaPresentation. Considere a intenção e o contexto "
+            "da conversa; perguntas apenas sobre preço não pedem vídeo. A ferramenta controla "
+            "repetições e permite reenvio quando o cliente pedir explicitamente o vídeo de novo. "
+            "Depois do envio, ofereça ajuda sobre planos ou cadastro. Se a ferramenta falhar, "
+            "explique o Recepia por texto sem afirmar que enviou o vídeo. "
             "Quando a pessoa demonstrar intenção de contratar, pagar, negociar ou falar com alguém, "
             "execute requestHumanSupport com um resumo breve do interesse. Informe que o responsável "
             "continuará a conversa. Peça nome e tipo de negócio somente se faltarem e for útil; "
@@ -167,6 +173,7 @@ def generate_reply(
     paciente: Paciente,
     conversa: Conversa,
     provider: AIProvider | None = None,
+    returning_from_human: bool = False,
 ) -> str:
     provider = provider or create_provider(db)
     history = (
@@ -190,14 +197,21 @@ def generate_reply(
         for m in reversed(history)
     )
     tools = tool_definitions(clinica.tipo_negocio)
-    ctx = ToolContext(db=db, clinica=clinica, paciente=paciente, conversa=conversa)
+    if returning_from_human:
+        tools = [tool for tool in tools if tool["function"]["name"] != "requestHumanSupport"]
+        messages.append({"role": "system", "content": "O cliente pediu explicitamente para voltar à IA. Responda como assistente e continue o atendimento; não encaminhe de novo para humano nesta mensagem."})
+    ctx = ToolContext(db=db, clinica=clinica, paciente=paciente, conversa=conversa,
+                      allow_handoff=not returning_from_human)
     booking_written = False
+    presentation_result: dict | None = None
     try:
         for _ in range(4):
             answer = provider.chat_with_tools(messages, tools, tenant_id=clinica.id)
             calls = answer.get("tool_calls") or []
             if not calls:
                 content = answer.get("content")
+                if presentation_result and not presentation_result.get("success"):
+                    return presentation_result.get("fallback_text") or SAFE_REPLY
                 if (
                     isinstance(content, str)
                     and _BOOKING_CLAIM.search(content)
@@ -213,13 +227,15 @@ def generate_reply(
                 return (
                     content.strip()[:4000]
                     if isinstance(content, str) and content.strip()
-                    else SAFE_REPLY
+                    else (presentation_result.get("followup") if presentation_result else SAFE_REPLY)
                 )
             messages.append(answer)
             for call in calls[:4]:
                 function = call.get("function") or {}
                 name = function.get("name") or ""
                 result = execute_tool(name, function.get("arguments") or "{}", ctx)
+                if name == "sendRecepiaPresentation" and result.get("reason") != "already_attempted":
+                    presentation_result = result
                 if (
                     name in {"createAppointment", "rescheduleAppointment", "createHotelReservation"}
                     and result.get("success") is True
@@ -238,7 +254,9 @@ def generate_reply(
                         "content": json.dumps(result, ensure_ascii=False),
                     }
                 )
-        return SAFE_REPLY
+        return (presentation_result.get("followup") if presentation_result and presentation_result.get("success")
+                else presentation_result.get("fallback_text") if presentation_result else SAFE_REPLY)
     except (AIUnavailable, AIRequestError):
         log.warning("IA indisponível: tenant=%s", clinica.id)
-        return SAFE_REPLY
+        return (presentation_result.get("followup") if presentation_result and presentation_result.get("success")
+                else presentation_result.get("fallback_text") if presentation_result else SAFE_REPLY)

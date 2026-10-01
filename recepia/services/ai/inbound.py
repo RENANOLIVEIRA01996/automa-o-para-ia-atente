@@ -3,12 +3,13 @@
 import logging
 import json
 import re
-from datetime import datetime
+import unicodedata
+from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from models import Clinica, Conversa, Mensagem, Paciente, WhatsAppInstance
+from models import Clinica, ConfiguracaoNegocio, Conversa, Mensagem, Paciente, WhatsAppInstance
 from services.ai.agent import generate_reply
 from services.ai.tools import ToolContext, execute_tool
 from services.whatsapp import WhatsAppService
@@ -21,6 +22,32 @@ _SALES_INTENT = re.compile(
     r"|\b(?:me passe|manda|envia)\s+(?:o\s+)?(?:link de pagamento|checkout)\b",
     re.IGNORECASE,
 )
+
+_AI_RETURN = re.compile(
+    r"\b(?:voltar|volte|retomar|retome|reativar|reative)\b.{0,60}"
+    r"(?:\bia\b|inteligencia artificial|assistente|atendente virtual|atendimento automatico|robo|bot)\b"
+    r"|\b(?:quero|gostaria de|prefiro|pode)\b.{0,25}\b(?:falar|conversar)\b.{0,30}"
+    r"(?:\bia\b|assistente|atendente virtual|robo|bot)\b"
+)
+_HUMAN_REQUEST = re.compile(
+    r"\b(?:quero|preciso|gostaria de|pode)\b.{0,35}\b(?:falar|conversar)\b.{0,30}"
+    r"(?:atendente|pessoa|humano|alguem|representante)\b"
+)
+
+
+def _normalize_intent(texto: str) -> str:
+    return "".join(
+        char for char in unicodedata.normalize("NFKD", texto.casefold())
+        if not unicodedata.combining(char)
+    )
+
+
+def explicit_ai_return(texto: str) -> bool:
+    normalized = _normalize_intent(texto)
+    match = _AI_RETURN.search(normalized)
+    if not match:
+        return False
+    return not re.search(r"\b(?:nao|nunca)\b.{0,30}$", normalized[:match.start()])
 
 
 def process_inbound(
@@ -89,10 +116,27 @@ def process_inbound(
     except IntegrityError:
         db.rollback()
         return {"status": "duplicada"}
+    returning_from_human = False
     if conversa.atendimento_humano:
-        return {"status": "humano"}
+        returning_from_human = explicit_ai_return(texto)
+        if not returning_from_human and not _HUMAN_REQUEST.search(_normalize_intent(texto)):
+            config = db.query(ConfiguracaoNegocio).filter(
+                ConfiguracaoNegocio.clinica_id == clinica.id
+            ).first()
+            minutes = config.retorno_ia_apos_minutos if config else None
+            last_human = conversa.atendimento_humano_atividade_em
+            returning_from_human = bool(
+                minutes and last_human
+                and datetime.utcnow() - last_human >= timedelta(minutes=minutes)
+            )
+        if not returning_from_human:
+            return {"status": "humano"}
+        conversa.atendimento_humano = False
+        conversa.atendimento_humano_atividade_em = None
+        db.commit()
+        log.info("Atendimento por IA reativado: tenant=%s conversa=%s", clinica.id, conversa.id)
 
-    if clinica.tipo_negocio == "RECEPIA" and _SALES_INTENT.search(texto) and not re.search(
+    if not returning_from_human and clinica.tipo_negocio == "RECEPIA" and _SALES_INTENT.search(texto) and not re.search(
         r"\b(?:não|nao|nunca)\s+(?:quero|vou|preciso|gostaria de)\s+\w*\s*(?:contratar|assinar|comprar|fechar)\b",
         texto, re.IGNORECASE,
     ):
@@ -104,7 +148,10 @@ def process_inbound(
         log.info("Interesse comercial encaminhado: tenant=%s aviso=%s", clinica.id, resultado.get("owner_notified"))
         resposta = "Que bom! Vou encaminhar seu interesse ao responsável pelo Recepia para continuar por aqui. Você também pode iniciar o teste grátis de 7 dias, sem cartão: https://recepia.132-226-243-173.sslip.io/cadastro"
     else:
-        resposta = generate_reply(db, clinica, paciente, conversa)
+        resposta = generate_reply(
+            db, clinica, paciente, conversa,
+            **({"returning_from_human": True} if returning_from_human else {}),
+        )
     envio = WhatsAppService().enviar_mensagem(instance_name, telefone, resposta)
     if not envio.get("success"):
         db.commit()  # registra AIUsage mesmo com falha do canal
