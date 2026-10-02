@@ -1,0 +1,95 @@
+{
+  "viewports": [
+    {
+      "width": 1920,
+      "scroll": 1920,
+      "imageLoaded": true
+    },
+    {
+      "width": 1366,
+      "scroll": 1366,
+      "imageLoaded": true
+    },
+    {
+      "width": 1024,
+      "scroll": 1024,
+      "imageLoaded": true
+    },
+    {
+      "width": 768,
+      "scroll": 768,
+      "imageLoaded": true
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "imageLoaded": true
+    },
+    {
+      "width": 375,
+      "scroll": 375,
+      "imageLoaded": true
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "imageLoaded": true
+    }
+  ],
+  "interactions": [
+    "Desktop video plays automatically",
+    "All commercial CTAs point to requested signup",
+    "Motion pause stops video and CSS effects",
+    "Booking scenario creates illustrative panel result",
+    "Scenario price completes",
+    "Scenario human completes",
+    "Scenario info completes",
+    "Demo pause and resume",
+    "Human / IA toggle works in both directions",
+    "FAQ opens using native details",
+    "Mobile does not request video",
+    "Mobile menu opens, navigates and closes",
+    "Reduced motion: no video, complete demo without timers"
+  ],
+  "metrics": {
+    "cls": 0.004246631174911688,
+    "lcp": 192,
+    "resources": [
+      {
+        "url": "/assets/landing.css",
+        "bytes": 38191
+      },
+      {
+        "url": "/assets/secretaria-fallback.webp",
+        "bytes": 117802
+      },
+      {
+        "url": "/assets/landing.js",
+        "bytes": 15097
+      },
+      {
+        "url": "/assets/plus-jakarta-sans.woff2",
+        "bytes": 60852
+      },
+      {
+        "url": "/assets/recepia-secretaria-loop.webm",
+        "bytes": 300
+      },
+      {
+        "url": "/assets/recepia-secretaria-loop.mp4",
+        "bytes": 300
+      },
+      {
+        "url": "/assets/recepia-secretaria-loop.webm",
+        "bytes": 319144
+      }
+    ],
+    "video": {
+      "source": "http://127.0.0.1:8001/assets/recepia-secretaria-loop.webm",
+      "paused": false,
+      "time": 2.185251
+    },
+    "buttonFont": "\"Plus Jakarta Sans\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"DejaVu Sans\", sans-serif"
+  },
+  "consoleErrors": []
+}

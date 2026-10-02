@@ -39,6 +39,7 @@ from api import (
 BASE_DIR = Path(__file__).parent
 DASHBOARD_DIR = BASE_DIR / "dashboard"
 LANDING_DIR = BASE_DIR / "landing"
+LANDING_ASSETS_DIR = LANDING_DIR / "assets"
 
 app = FastAPI(
     title="Recepia API",
@@ -137,6 +138,9 @@ if DASHBOARD_DIR.exists():
     app.mount("/dashboard", StaticFiles(directory=str(DASHBOARD_DIR), html=True), name="dashboard")
 
 # Landing pública — servida na raiz quando o diretório existe
+if LANDING_ASSETS_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(LANDING_ASSETS_DIR)), name="landing-assets")
+
 if LANDING_DIR.exists():
     @app.get("/", include_in_schema=False)
     def landing_root():

@@ -3,5 +3,8 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /admin/
 Disallow: /api/
+Disallow: /auth/
+Disallow: /entrar
+Disallow: /cadastro
 
-Sitemap: https://app.recepia.app.br/sitemap.xml
+Sitemap: https://recepia.132-226-243-173.sslip.io/sitemap.xml
