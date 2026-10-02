@@ -39,6 +39,7 @@ env/
 *.swp
 
 # Docs internos
+docs/
 PLANO_ADAPTACAO.md
 AUDIT_*.md
 tests/

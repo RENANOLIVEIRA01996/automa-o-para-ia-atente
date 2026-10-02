@@ -8,11 +8,14 @@ Multi-tenant. Cada request precisa identificar a clínica via:
 import os
 import sys
 from datetime import timedelta
+from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -58,9 +61,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(self)"
         # O painel contém código de interface que muda com frequência. Evita
         # que uma aba antiga continue exibindo ações e estilos já corrigidos.
+        if request.url.path.startswith(("/dashboard", "/api/", "/auth/", "/admin/")) or request.url.path in {
+            "/cadastro", "/entrar", "/docs", "/redoc", "/openapi.json", "/health", "/ready",
+        }:
+            response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
         if (request.url.path.startswith("/dashboard") and (
             request.url.path.endswith("/") or request.url.path.endswith(".html")
-        )) or request.url.path in {"/", "/cadastro", "/entrar", "/termos", "/privacidade"}:
+        )) or request.url.path in {
+            "/", "/cadastro", "/entrar", "/termos", "/privacidade",
+            "/automacao-whatsapp-empresas", "/atendimento-whatsapp-inteligencia-artificial",
+            "/agendamento-automatico-whatsapp",
+        }:
             response.headers["Cache-Control"] = "no-store, max-age=0"
         # HSTS só em produção HTTPS (toggle por env pra não quebrar dev http)
         if os.getenv("HTTPS_ENABLED", "false").lower() == "true":
@@ -141,36 +152,61 @@ if DASHBOARD_DIR.exists():
 if LANDING_ASSETS_DIR.exists():
     app.mount("/assets", StaticFiles(directory=str(LANDING_ASSETS_DIR)), name="landing-assets")
 
+
+@lru_cache(maxsize=16)
+def _landing_template(filename: str) -> str:
+    return (LANDING_DIR / filename).read_text(encoding="utf-8")
+
+
+def _public_document(filename: str, media_type: str = "text/html") -> Response:
+    content = (
+        _landing_template(filename)
+        .replace("__PUBLIC_SITE_URL__", settings.PUBLIC_SITE_URL)
+        .replace("__PUBLIC_SITE_HOST__", urlsplit(settings.PUBLIC_SITE_URL).hostname or "")
+    )
+    if media_type == "text/html":
+        return HTMLResponse(content)
+    if media_type == "text/plain":
+        return PlainTextResponse(content)
+    return Response(content, media_type=media_type)
+
+
 if LANDING_DIR.exists():
     @app.get("/", include_in_schema=False)
     def landing_root():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "index.html")
+        return _public_document("index.html")
+
+    @app.get("/automacao-whatsapp-empresas", include_in_schema=False)
+    def landing_automacao_whatsapp():
+        return _public_document("automacao-whatsapp-empresas.html")
+
+    @app.get("/atendimento-whatsapp-inteligencia-artificial", include_in_schema=False)
+    def landing_atendimento_ia():
+        return _public_document("atendimento-whatsapp-inteligencia-artificial.html")
+
+    @app.get("/agendamento-automatico-whatsapp", include_in_schema=False)
+    def landing_agendamento_whatsapp():
+        return _public_document("agendamento-automatico-whatsapp.html")
 
     @app.get("/cadastro", include_in_schema=False)
     def landing_cadastro():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "cadastro.html")
+        return _public_document("cadastro.html")
 
     @app.get("/entrar", include_in_schema=False)
     def landing_entrar():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "entrar.html")
+        return _public_document("entrar.html")
 
     @app.get("/termos", include_in_schema=False)
     def landing_termos():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "termos.html")
+        return _public_document("termos.html")
 
     @app.get("/privacidade", include_in_schema=False)
     def landing_privacidade():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "privacidade.html")
+        return _public_document("privacidade.html")
 
     @app.get("/robots.txt", include_in_schema=False)
     def robots():
-        from fastapi.responses import FileResponse
-        return FileResponse(LANDING_DIR / "robots.txt", media_type="text/plain")
+        return _public_document("robots.txt", "text/plain")
 
 
 # CSS do Tailwind compilado (estático) — substitui o CDN de dev nas páginas
@@ -217,8 +253,7 @@ def recepia_theme_css():
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    from fastapi.responses import FileResponse
-    return FileResponse(LANDING_DIR / "sitemap.xml", media_type="application/xml")
+    return _public_document("sitemap.xml", "application/xml")
 
 
 @app.get("/api/relatorios/dashboard")

@@ -12,6 +12,7 @@ A versão escolhida pelo usuário é **Recepia Landing Premium v1**, criada em 0
 - Auditoria: `recepia/docs/landing/AUDITORIA.md`.
 - Validação e screenshots: `recepia/docs/landing/VALIDACAO.md`.
 - Testes da landing: `recepia/tests/test_landing.py`.
+- Páginas comerciais e preparação para busca: `recepia/docs/SEO_ORACLE.md`.
 
 A stack é FastAPI/Python com frontend estático HTML/CSS/JavaScript. Não migre para React/Next.js apenas para rodar esta landing. `main.py` precisa manter o mount de `/assets` limitado a `landing/assets`.
 
@@ -37,7 +38,7 @@ Execute esse segundo comando na raiz do repositório e abra `http://localhost:80
 
 Mantenha `/cadastro`, `/dashboard`, `/dashboard/saas.html`, `/dashboard/admin.html`, autenticação, APIs e estilos compartilhados. A demonstração da landing é fictícia e não deve criar agendamentos ou mensagens reais.
 
-Os CTAs de cadastro apontam para `https://recepia.132-226-243-173.sslip.io/cadastro`. Consulte o README antes de trocar domínio. Não exponha credenciais ou arquivos `.env` em assets, frontend ou logs. Não publique depoimentos ou números de clientes inventados.
+Os CTAs de cadastro usam `/cadastro` na mesma origem; o domínio canônico e os links externos da IA vêm de `PUBLIC_SITE_URL`. Consulte o README antes de trocar domínio. Não exponha credenciais ou arquivos `.env` em assets, frontend ou logs. Não publique depoimentos ou números de clientes inventados.
 
 Não faça deploy, commit ou push sem autorização do usuário. O pedido original autorizou desenvolvimento e validação local.
 

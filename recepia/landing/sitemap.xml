@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://recepia.132-226-243-173.sslip.io/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://recepia.132-226-243-173.sslip.io/termos</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://recepia.132-226-243-173.sslip.io/privacidade</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>__PUBLIC_SITE_URL__/</loc></url>
+  <url><loc>__PUBLIC_SITE_URL__/automacao-whatsapp-empresas</loc></url>
+  <url><loc>__PUBLIC_SITE_URL__/atendimento-whatsapp-inteligencia-artificial</loc></url>
+  <url><loc>__PUBLIC_SITE_URL__/agendamento-automatico-whatsapp</loc></url>
+  <url><loc>__PUBLIC_SITE_URL__/termos</loc></url>
+  <url><loc>__PUBLIC_SITE_URL__/privacidade</loc></url>
 </urlset>

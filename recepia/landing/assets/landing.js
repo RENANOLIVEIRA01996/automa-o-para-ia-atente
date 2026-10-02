@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // Only public destinations and local illustrative data belong in this file.
-  const SIGNUP_URL = 'https://recepia.132-226-243-173.sslip.io/cadastro';
+  const SIGNUP_URL = '/cadastro';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = window.matchMedia('(max-width: 768px)');
   const body = document.body;

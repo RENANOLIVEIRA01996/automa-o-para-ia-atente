@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 
@@ -8,6 +10,8 @@ class Settings(BaseSettings):
     APP_URL: str = "http://localhost:8000"
     PUBLIC_BASE_URL: str = ""
     DOMAIN: str = ""
+    # Origem canônica do site comercial, dos sitemaps e dos links enviados pela IA.
+    PUBLIC_SITE_URL: str = "https://recepia.132-226-243-173.sslip.io"
 
     # Auth — SEM defaults seguros. Pydantic falha boot se não vier do .env.
     JWT_SECRET: str
@@ -55,6 +59,24 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "https://recepia.app.br,https://app.recepia.app.br"
 
     # ----------------------------------------------------------------- validators
+    @field_validator("PUBLIC_SITE_URL")
+    @classmethod
+    def validar_site_publico(cls, value: str) -> str:
+        origin = value.strip().rstrip("/")
+        parsed = urlsplit(origin)
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or any(char.isspace() or char in "\"'<>" for char in origin)
+            or parsed.username
+            or parsed.password
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("PUBLIC_SITE_URL deve ser uma origem HTTPS sem caminho")
+        return origin
+
 
     @field_validator("DEBUG", mode="before")
     @classmethod

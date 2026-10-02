@@ -6,6 +6,7 @@ from models import Conversa, Mensagem, Paciente, Procedimento, ConfiguracaoNegoc
 from config import settings
 from services.ai import inbound
 from services.ai.agent import build_system_prompt
+from services.ai.public_links import recepia_signup_url, recepia_site_url
 from services.ai import agent
 from services.ai.tools import tool_definitions
 
@@ -265,12 +266,12 @@ def test_recepia_envia_site_ou_cadastro_conforme_pedido(db_session, clinica_fake
         AssertionError("Pedido explícito de link não deve depender da IA")
     ))
     for message_id, text, expected in (
-        ("link-site-1", "Me manda o link do site do Recepia", "https://recepia.132-226-243-173.sslip.io/"),
-        ("link-site-2", "Qual é o site?", "https://recepia.132-226-243-173.sslip.io/"),
-        ("link-generic", "Me manda o link", "https://recepia.132-226-243-173.sslip.io/"),
-        ("link-signup", "Pode enviar o link de cadastro?", "https://recepia.132-226-243-173.sslip.io/cadastro"),
-        ("link-start", "Me manda o link para começar", "https://recepia.132-226-243-173.sslip.io/cadastro"),
-        ("page-signup", "Quero a página de cadastro", "https://recepia.132-226-243-173.sslip.io/cadastro"),
+        ("link-site-1", "Me manda o link do site do Recepia", recepia_site_url()),
+        ("link-site-2", "Qual é o site?", recepia_site_url()),
+        ("link-generic", "Me manda o link", recepia_site_url()),
+        ("link-signup", "Pode enviar o link de cadastro?", recepia_signup_url()),
+        ("link-start", "Me manda o link para começar", recepia_signup_url()),
+        ("page-signup", "Quero a página de cadastro", recepia_signup_url()),
     ):
         result = inbound.process_inbound(
             db_session, tenant, tenant.evolution_instance_name,
@@ -323,7 +324,7 @@ def test_recepia_prompt_ignora_servicos_antigos(db_session, clinica_fake):
     assert "R$ 197/mês" in prompt
     assert "R$ 497/mês" in prompt
     assert "/cadastro" in prompt
-    assert "https://recepia.132-226-243-173.sslip.io/" in prompt
+    assert recepia_site_url() in prompt
     assert "Lavagem antiga" not in prompt
     assert {tool["function"]["name"] for tool in tool_definitions("RECEPIA")} == {
         "getBusinessInfo", "requestHumanSupport", "sendRecepiaPresentation"

@@ -13,3 +13,16 @@
 @media(max-width:360px){.hero h1{font-size:2.4rem}.hero-ctas{grid-template-columns:1fr;max-width:260px}.hero-notes{gap:10px;font-size:.75rem}.hero{min-height:970px}}
 
 .message.confirmed>.icon{width:15px;height:15px;margin-left:5px;vertical-align:middle}
+
+/* Commercial pages linked from the premium landing. */
+.solutions-section{background:#0b1020;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.solutions-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.solution-card{display:flex;flex-direction:column;gap:18px;min-height:280px;padding:30px;border:1px solid rgba(176,194,235,.18);border-radius:18px;background:linear-gradient(145deg,#141a2b,#101522);transition:border-color .2s,transform .2s}
+.solution-card:hover{border-color:#a18aff;transform:translateY(-3px)}
+.solution-card>span{color:var(--purple);font-size:.72rem;font-weight:700;letter-spacing:.12em}
+.solution-card h3{font-size:clamp(1.3rem,1.9vw,1.7rem);line-height:1.22}
+.solution-card p{color:var(--muted);font-size:.94rem}
+.solution-card strong{margin-top:auto;color:var(--cyan);font-size:.9rem}
+@media(max-width:900px){.solutions-grid{grid-template-columns:1fr}.solution-card{min-height:0}}
+@media(max-width:600px){.solution-card{padding:24px}}
+@media(prefers-reduced-motion:reduce){.solution-card{transition:none}.solution-card:hover{transform:none}}

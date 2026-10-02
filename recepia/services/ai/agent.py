@@ -23,7 +23,7 @@ from models import (
 )
 from services.ai.failover import create_provider
 from services.ai.openrouter import AIRequestError, AIUnavailable
-from services.ai.public_links import RECEPIA_SIGNUP_URL, RECEPIA_SITE_URL
+from services.ai.public_links import recepia_signup_url, recepia_site_url
 from services.ai.provider import AIProvider
 from services.ai.tools import ToolContext, execute_tool, tool_definitions
 from services.processor import mascara_pii
@@ -60,8 +60,8 @@ def build_system_prompt(db: Session, clinica: Clinica) -> str:
             "foi concluído. Os preços mensais vigentes são: "
             + json.dumps(precos, ensure_ascii=False)
             + ". Ofereça o teste grátis de 7 dias, sem cartão. Quando a pessoa pedir o site "
-            f"ou um link para conhecer o Recepia, envie {RECEPIA_SITE_URL}. Quando quiser "
-            f"começar o teste ou criar a conta, envie {RECEPIA_SIGNUP_URL}. "
+            f"ou um link para conhecer o Recepia, envie {recepia_site_url()}. Quando quiser "
+            f"começar o teste ou criar a conta, envie {recepia_signup_url()}. "
             "O cadastro inicia a avaliação; não prometa um link de checkout nem invente descontos. "
             "Quando o cliente pedir uma apresentação, demonstração ou vídeo, use "
             "sendRecepiaPresentation. Um pedido de link do site não pede vídeo. Considere o contexto "

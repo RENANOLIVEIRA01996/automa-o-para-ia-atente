@@ -1,4 +1,11 @@
 """Public links shared by the Recepia commercial assistant."""
 
-RECEPIA_SITE_URL = "https://recepia.132-226-243-173.sslip.io/"
-RECEPIA_SIGNUP_URL = RECEPIA_SITE_URL + "cadastro"
+from config import settings
+
+
+def recepia_site_url() -> str:
+    return settings.PUBLIC_SITE_URL + "/"
+
+
+def recepia_signup_url() -> str:
+    return settings.PUBLIC_SITE_URL + "/cadastro"

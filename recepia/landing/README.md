@@ -1,6 +1,6 @@
 # Landing institucional Recepia
 
-A página está em `landing/index.html`, servida pela API em `/`. Assets exclusivos em `landing/assets/`, disponíveis em `/assets/`. Não depende de React, npm, CDN ou analytics. A fonte Plus Jakarta Sans é servida localmente em WOFF2, com licença OFL incluída. Cadastro e painéis não foram modificados.
+A landing premium está em `landing/index.html`, servida pela API em `/`. Há três páginas comerciais de serviços com conteúdo próprio. Assets exclusivos em `landing/assets/`, disponíveis em `/assets/`. A landing não depende de React, npm ou CDN; a fonte Plus Jakarta Sans é servida localmente em WOFF2, com licença OFL incluída. O cadastro, os painéis e as APIs mantêm suas rotas.
 
 ## Visualizar localmente
 
@@ -23,7 +23,7 @@ Para visualizar só a landing, sem banco ou backend:
 python -m http.server 8080 --directory landing
 ```
 
-Abra `http://localhost:8080/`. Nesse modo, `/assets` funciona, mas login/documentos legais e cadastro locais dependem da API; os CTAs comerciais continuam apontando para o cadastro real.
+Abra `http://localhost:8080/` para uma prévia visual limitada. As rotas sem extensão, os metadados com domínio configurável, login, páginas legais e cadastro precisam do FastAPI acima para uma revisão fiel.
 
 ## Vídeo da secretária
 
@@ -40,15 +40,7 @@ A imagem permanece quando o vídeo falta ou o autoplay é bloqueado. Em mobile, 
 
 ## Domínio e conversão
 
-O endereço real solicitado está em:
-
-- `landing/assets/landing.js`: `SIGNUP_URL`.
-- `landing/index.html`: href de cada CTA, canonical, `og:url` e URL do JSON-LD.
-- `landing/robots.txt`: URL do sitemap.
-- `landing/sitemap.xml`: URLs indexáveis.
-- `services/ai/public_links.py`: site e cadastro enviados pela IA comercial no WhatsApp.
-
-Faça uma substituição desses endereços em conjunto ao migrar. Confirme também canonical/analytics de `cadastro.html`, `entrar.html`, `termos.html` e `privacidade.html`, que foram preservados neste trabalho. O endereço técnico não aparece no texto visual da landing.
+Configure a origem canônica em `PUBLIC_SITE_URL` no `.env` do servidor. Ela alimenta canonical, Open Graph, schema.org, sitemap, robots.txt e links enviados pela IA comercial. Os CTAs da landing usam `/cadastro` relativo à origem atual. `DOMAIN`, `APP_URL`, `PUBLIC_BASE_URL` e `ALLOWED_ORIGINS` ainda devem ser alinhados ao domínio escolhido para Caddy, API, vídeo e CORS. Veja [SEO_ORACLE.md](../docs/SEO_ORACLE.md) antes de publicar ou migrar domínio.
 
 ## Conteúdo e melhorias
 

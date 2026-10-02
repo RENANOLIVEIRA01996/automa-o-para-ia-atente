@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from models import Clinica, ConfiguracaoNegocio, Conversa, Mensagem, Paciente, WhatsAppInstance
 from services.ai.agent import generate_reply
-from services.ai.public_links import RECEPIA_SIGNUP_URL, RECEPIA_SITE_URL
+from services.ai.public_links import recepia_signup_url, recepia_site_url
 from services.ai.tools import ToolContext, execute_tool
 from services.whatsapp import WhatsAppService
 
@@ -170,13 +170,13 @@ def process_inbound(
         log.info("Interesse comercial encaminhado: tenant=%s aviso=%s", clinica.id, resultado.get("owner_notified"))
         resposta = ("Que bom! Vou encaminhar seu interesse ao responsável pelo Recepia para "
                     "continuar por aqui. Você também pode iniciar o teste grátis de 7 dias, "
-                    f"sem cartão: {RECEPIA_SIGNUP_URL}")
+                    f"sem cartão: {recepia_signup_url()}")
     elif clinica.tipo_negocio == "RECEPIA" and (link_kind := requested_recepia_link(texto)):
         resposta = (
-            f"Aqui está o site do Recepia: {RECEPIA_SITE_URL} Nele você pode conhecer "
+            f"Aqui está o site do Recepia: {recepia_site_url()} Nele você pode conhecer "
             "o sistema e acessar a demonstração."
             if link_kind == "site" else
-            f"Para começar seu teste grátis de 7 dias, sem cartão, acesse: {RECEPIA_SIGNUP_URL}"
+            f"Para começar seu teste grátis de 7 dias, sem cartão, acesse: {recepia_signup_url()}"
         )
     else:
         resposta = generate_reply(
