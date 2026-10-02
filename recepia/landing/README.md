@@ -46,6 +46,7 @@ O endereço real solicitado está em:
 - `landing/index.html`: href de cada CTA, canonical, `og:url` e URL do JSON-LD.
 - `landing/robots.txt`: URL do sitemap.
 - `landing/sitemap.xml`: URLs indexáveis.
+- `services/ai/public_links.py`: site e cadastro enviados pela IA comercial no WhatsApp.
 
 Faça uma substituição desses endereços em conjunto ao migrar. Confirme também canonical/analytics de `cadastro.html`, `entrar.html`, `termos.html` e `privacidade.html`, que foram preservados neste trabalho. O endereço técnico não aparece no texto visual da landing.
 

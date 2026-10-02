@@ -62,3 +62,10 @@ Faltam testes em Safari/iPhone físico e medição no servidor público com rede
 - `iphone-pagina-completa.png`
 
 Dados de execução: `qa-results.json`.
+
+## Link enviado pela IA comercial (02/10/2026)
+
+- Pedidos explícitos do site ou de um link para conhecer o Recepia recebem a URL da landing premium (`/`). Pedidos de cadastro ou de um link para começar recebem `/cadastro`.
+- Pedidos de vídeo e pagamento continuam nos fluxos próprios. A regra de link é aplicada apenas ao negócio Recepia; outros tenants seguem sua IA configurada.
+- 48 testes das suítes de conversas, apresentação, landing, OpenRouter, cadastro e autenticação passaram após essa alteração. A verificação Ruff de nomes/importações (`--select F`) também passou.
+- Não houve deploy. A disponibilidade das URLs públicas não pôde ser confirmada daqui: as tentativas HTTPS expiraram durante o handshake.

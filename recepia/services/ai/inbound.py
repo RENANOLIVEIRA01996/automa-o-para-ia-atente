@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from models import Clinica, ConfiguracaoNegocio, Conversa, Mensagem, Paciente, WhatsAppInstance
 from services.ai.agent import generate_reply
+from services.ai.public_links import RECEPIA_SIGNUP_URL, RECEPIA_SITE_URL
 from services.ai.tools import ToolContext, execute_tool
 from services.whatsapp import WhatsAppService
 
@@ -48,6 +49,27 @@ def explicit_ai_return(texto: str) -> bool:
     if not match:
         return False
     return not re.search(r"\b(?:nao|nunca)\b.{0,30}$", normalized[:match.start()])
+
+
+def requested_recepia_link(texto: str) -> str | None:
+    """Resolve pedidos explícitos de link sem depender da resposta do modelo."""
+    normalized = _normalize_intent(texto)
+    if re.search(r"\bnao\s+(?:me\s+)?(?:manda|envia|passe|passa|quero)\b", normalized):
+        return None
+    if re.search(r"\b(?:video|demonstracao|apresentacao|pagamento|checkout)\b", normalized):
+        return None
+    has_link = bool(re.search(r"\b(?:link|url|endereco)\b", normalized))
+    has_site = bool(re.search(r"\b(?:site|pagina|landing)\b", normalized))
+    if not has_link and not has_site:
+        return None
+    if re.search(r"\b(?:cadastro|cadastrar|conta|teste|comecar|iniciar|experimentar|assinar|contratar|comprar)\b", normalized):
+        return "signup"
+    if has_link or (has_site and re.search(
+        r"\b(?:qual|manda|envia|passe|passa|quero|gostaria|ver|acessar|visitar|conhecer)\b",
+        normalized,
+    )):
+        return "site"
+    return None
 
 
 def process_inbound(
@@ -146,7 +168,16 @@ def process_inbound(
             ToolContext(db=db, clinica=clinica, paciente=paciente, conversa=conversa),
         )
         log.info("Interesse comercial encaminhado: tenant=%s aviso=%s", clinica.id, resultado.get("owner_notified"))
-        resposta = "Que bom! Vou encaminhar seu interesse ao responsável pelo Recepia para continuar por aqui. Você também pode iniciar o teste grátis de 7 dias, sem cartão: https://recepia.132-226-243-173.sslip.io/cadastro"
+        resposta = ("Que bom! Vou encaminhar seu interesse ao responsável pelo Recepia para "
+                    "continuar por aqui. Você também pode iniciar o teste grátis de 7 dias, "
+                    f"sem cartão: {RECEPIA_SIGNUP_URL}")
+    elif clinica.tipo_negocio == "RECEPIA" and (link_kind := requested_recepia_link(texto)):
+        resposta = (
+            f"Aqui está o site do Recepia: {RECEPIA_SITE_URL} Nele você pode conhecer "
+            "o sistema e acessar a demonstração."
+            if link_kind == "site" else
+            f"Para começar seu teste grátis de 7 dias, sem cartão, acesse: {RECEPIA_SIGNUP_URL}"
+        )
     else:
         resposta = generate_reply(
             db, clinica, paciente, conversa,

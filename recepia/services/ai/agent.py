@@ -23,6 +23,7 @@ from models import (
 )
 from services.ai.failover import create_provider
 from services.ai.openrouter import AIRequestError, AIUnavailable
+from services.ai.public_links import RECEPIA_SIGNUP_URL, RECEPIA_SITE_URL
 from services.ai.provider import AIProvider
 from services.ai.tools import ToolContext, execute_tool, tool_definitions
 from services.processor import mascara_pii
@@ -58,11 +59,12 @@ def build_system_prompt(db: Session, clinica: Clinica) -> str:
             "a empresa configura seus serviços e horários. Não afirme que uma venda ou pagamento "
             "foi concluído. Os preços mensais vigentes são: "
             + json.dumps(precos, ensure_ascii=False)
-            + ". Ofereça o teste grátis de 7 dias, sem cartão, e envie o link direto "
-            "https://recepia.132-226-243-173.sslip.io/cadastro quando a pessoa quiser começar. "
+            + ". Ofereça o teste grátis de 7 dias, sem cartão. Quando a pessoa pedir o site "
+            f"ou um link para conhecer o Recepia, envie {RECEPIA_SITE_URL}. Quando quiser "
+            f"começar o teste ou criar a conta, envie {RECEPIA_SIGNUP_URL}. "
             "O cadastro inicia a avaliação; não prometa um link de checkout nem invente descontos. "
-            "Quando o cliente demonstrar interesse em conhecer o sistema, pedir uma apresentação, "
-            "demonstração ou vídeo, use sendRecepiaPresentation. Considere a intenção e o contexto "
+            "Quando o cliente pedir uma apresentação, demonstração ou vídeo, use "
+            "sendRecepiaPresentation. Um pedido de link do site não pede vídeo. Considere o contexto "
             "da conversa; perguntas apenas sobre preço não pedem vídeo. A ferramenta controla "
             "repetições e permite reenvio quando o cliente pedir explicitamente o vídeo de novo. "
             "Depois do envio, ofereça ajuda sobre planos ou cadastro. Se a ferramenta falhar, "

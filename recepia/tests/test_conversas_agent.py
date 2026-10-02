@@ -249,6 +249,68 @@ def test_recepia_comercial_encaminha_compra_sem_chamar_ia(
     assert conversa.atendimento_humano is True
 
 
+def test_recepia_envia_site_ou_cadastro_conforme_pedido(db_session, clinica_fake, monkeypatch):
+    tenant = clinica_fake["clinica"]
+    tenant.tipo_negocio = "RECEPIA"
+    db_session.commit()
+    sent = []
+
+    class FakeWhatsApp:
+        def enviar_mensagem(self, instance_name, phone, message):
+            sent.append(message)
+            return {"success": True}
+
+    monkeypatch.setattr(inbound, "WhatsAppService", FakeWhatsApp)
+    monkeypatch.setattr(inbound, "generate_reply", lambda *_args: (_ for _ in ()).throw(
+        AssertionError("Pedido explícito de link não deve depender da IA")
+    ))
+    for message_id, text, expected in (
+        ("link-site-1", "Me manda o link do site do Recepia", "https://recepia.132-226-243-173.sslip.io/"),
+        ("link-site-2", "Qual é o site?", "https://recepia.132-226-243-173.sslip.io/"),
+        ("link-generic", "Me manda o link", "https://recepia.132-226-243-173.sslip.io/"),
+        ("link-signup", "Pode enviar o link de cadastro?", "https://recepia.132-226-243-173.sslip.io/cadastro"),
+        ("link-start", "Me manda o link para começar", "https://recepia.132-226-243-173.sslip.io/cadastro"),
+        ("page-signup", "Quero a página de cadastro", "https://recepia.132-226-243-173.sslip.io/cadastro"),
+    ):
+        result = inbound.process_inbound(
+            db_session, tenant, tenant.evolution_instance_name,
+            "5511999998888", text, message_id, "Teste",
+        )
+        assert result["status"] == "respondida"
+        assert expected in sent[-1]
+        if message_id.startswith("link-site") or message_id == "link-generic":
+            assert "/cadastro" not in sent[-1]
+    assert len(sent) == 6
+
+
+def test_pedidos_de_video_e_pagamento_nao_viram_link_do_site():
+    for text in (
+        "Me manda o link do vídeo", "Quero uma demonstração em vídeo",
+        "Tem link de pagamento?", "Não quero receber o link",
+    ):
+        assert inbound.requested_recepia_link(text) is None
+
+
+def test_link_do_site_nao_intercepta_outro_negocio(db_session, clinica_fake, monkeypatch):
+    tenant = clinica_fake["clinica"]
+    assert tenant.tipo_negocio != "RECEPIA"
+    sent = []
+
+    class FakeWhatsApp:
+        def enviar_mensagem(self, instance_name, phone, message):
+            sent.append(message)
+            return {"success": True}
+
+    monkeypatch.setattr(inbound, "WhatsAppService", FakeWhatsApp)
+    monkeypatch.setattr(inbound, "generate_reply", lambda *_args: "Resposta do negócio")
+    result = inbound.process_inbound(
+        db_session, tenant, tenant.evolution_instance_name,
+        "5511999998888", "Qual é o site?", "other-link-1", "Teste",
+    )
+    assert result["status"] == "respondida"
+    assert sent == ["Resposta do negócio"]
+
+
 def test_recepia_prompt_ignora_servicos_antigos(db_session, clinica_fake):
     tenant = clinica_fake["clinica"]
     tenant.tipo_negocio = "RECEPIA"
@@ -261,6 +323,7 @@ def test_recepia_prompt_ignora_servicos_antigos(db_session, clinica_fake):
     assert "R$ 197/mês" in prompt
     assert "R$ 497/mês" in prompt
     assert "/cadastro" in prompt
+    assert "https://recepia.132-226-243-173.sslip.io/" in prompt
     assert "Lavagem antiga" not in prompt
     assert {tool["function"]["name"] for tool in tool_definitions("RECEPIA")} == {
         "getBusinessInfo", "requestHumanSupport", "sendRecepiaPresentation"
